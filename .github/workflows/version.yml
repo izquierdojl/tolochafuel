@@ -1,0 +1,66 @@
+name: Versionado
+
+on:
+  push:
+    branches: [dev]
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release)') }}
+    runs-on: ubuntu-latest
+    outputs:
+      bump: ${{ steps.bump.outputs.bump }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Determinar tipo de bump
+        id: bump
+        run: |
+          ULTIMO_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$ULTIMO_TAG" ]; then
+            RANGO="HEAD"
+          else
+            RANGO="${ULTIMO_TAG}..HEAD"
+          fi
+          COMMITS=$(git log --pretty=%s "$RANGO")
+          if [ -n "$ULTIMO_TAG" ] && [ -z "$COMMITS" ]; then
+            echo "Sin cambios desde $ULTIMO_TAG; no se versiona"
+            echo "bump=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "Commits analizados:"
+          echo "$COMMITS"
+          BUMP=patch
+          if echo "$COMMITS" | grep -qE '^[a-z]+(\([^)]+\))?!:'; then BUMP=major; fi
+          if echo "$COMMITS" | grep -qE 'BREAKING CHANGE'; then BUMP=major; fi
+          if echo "$COMMITS" | grep -qE '^feat(\([^)]+\))?:'; then BUMP=minor; fi
+          echo "bump=$BUMP" >> "$GITHUB_OUTPUT"
+
+      - name: Configurar identidad git
+        if: steps.bump.outputs.bump != ''
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Aplicar versión
+        if: steps.bump.outputs.bump != ''
+        run: node scripts/bump.js "${{ steps.bump.outputs.bump }}"
+
+      - name: Publicar commit y tag
+        if: steps.bump.outputs.bump != ''
+        run: git push origin HEAD:dev --follow-tags
+
+  publicar:
+    needs: bump
+    if: ${{ needs.bump.outputs.bump != '' }}
+    uses: ./.github/workflows/release.yml
+    secrets: inherit

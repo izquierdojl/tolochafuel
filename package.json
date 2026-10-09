@@ -1,0 +1,19 @@
+{
+  "name": "tolochafuel",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Precios de carburantes de las gasolineras cercanas (Flutter)",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "check:changes": "bash scripts/check_changes.sh",
+    "release:major": "node scripts/bump.js major",
+    "release:minor": "node scripts/bump.js minor",
+    "release:patch": "node scripts/bump.js patch"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1"
+  }
+}
