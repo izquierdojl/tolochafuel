@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/models/gasolinera.dart';
 import '../../../core/models/lugar.dart';
+import '../../../core/models/meta_datos.dart';
 import '../data/cercanas_repositorio.dart';
 import 'cercanas_controller.dart';
 
@@ -18,6 +19,7 @@ class BuscarController extends ChangeNotifier {
   String? errorBusqueda;
   List<Gasolinera> gasolineras = const [];
   String? areaNombre;
+  MetaDatos? meta;
   String? mensajeError;
   Lugar? lugarElegido;
 
@@ -63,6 +65,7 @@ class BuscarController extends ChangeNotifier {
       final resultado = await repositorio.masBaratas(lugar: lugar);
       gasolineras = resultado.gasolineras;
       areaNombre = resultado.areaNombre ?? lugar.nombre;
+      meta = resultado.meta;
       _establecer(
         gasolineras.isEmpty ? EstadoCercanas.vacio : EstadoCercanas.datos,
       );

@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tolochafuel/core/api/api_client.dart';
 import 'package:tolochafuel/core/api/precios_gasolina_api.dart';
 import 'package:tolochafuel/core/models/detalle_estacion.dart';
 import 'package:tolochafuel/core/models/gasolinera.dart';
+import 'package:tolochafuel/core/models/meta_datos.dart';
 import 'package:tolochafuel/core/models/producto_precio.dart';
 import 'package:tolochafuel/features/favoritos/data/favorito.dart';
 import 'package:tolochafuel/features/favoritos/data/favoritos_repositorio.dart';
@@ -51,6 +54,19 @@ class ApiFalsa extends PreciosGasolinaApi {
     final error = errores[id];
     if (error != null) throw error;
     return detalles[id] ?? const DetalleEstacion(productos: []);
+  }
+}
+
+class ApiLenta extends PreciosGasolinaApi {
+  ApiLenta(this.completer);
+
+  final Completer<DetalleEstacion> completer;
+  int consultas = 0;
+
+  @override
+  Future<DetalleEstacion> detalle(int id) {
+    consultas++;
+    return completer.future;
   }
 }
 
@@ -153,5 +169,91 @@ void main() {
     await controller.cargarDetalle(1);
     expect(controller.errorDetalle(1), isNull);
     expect(controller.detalle(1)!.productos.single.etiqueta, 'Gasolina 95 E5');
+  });
+
+  test('al marcar consulta el detalle de la estación', () async {
+    final api = ApiFalsa();
+    final controller = FavoritosController(
+      repositorio: RepositorioFalso(),
+      api: api,
+    );
+    await controller.cargar();
+
+    await controller.alternar(_gasolinera());
+
+    expect(api.consultas, [1]);
+    expect(controller.detalle(1), isNotNull);
+  });
+
+  test('no repite la consulta si el detalle ya está en caché', () async {
+    final api = ApiFalsa();
+    final controller = FavoritosController(
+      repositorio: RepositorioFalso(),
+      api: api,
+    );
+    await controller.cargar();
+
+    await controller.alternar(_gasolinera());
+    await controller.cargarDetalle(1);
+
+    expect(api.consultas, [1]);
+  });
+
+  test('no duplica la consulta mientras está en curso', () async {
+    final completer = Completer<DetalleEstacion>();
+    final api = ApiLenta(completer);
+    final controller = FavoritosController(
+      repositorio: RepositorioFalso(),
+      api: api,
+    );
+    await controller.cargar();
+
+    final primera = controller.cargarDetalle(1);
+    final segunda = controller.cargarDetalle(1);
+    expect(api.consultas, 1);
+
+    completer.complete(const DetalleEstacion(productos: []));
+    await Future.wait([primera, segunda]);
+
+    expect(api.consultas, 1);
+  });
+
+  test('la marca persiste aunque falle la consulta del precio', () async {
+    final repositorio = RepositorioFalso();
+    final api = ApiFalsa(
+      errores: {1: const ApiException(mensaje: 'Sin conexión.')},
+    );
+    final controller = FavoritosController(repositorio: repositorio, api: api);
+    await controller.cargar();
+
+    await controller.alternar(_gasolinera());
+
+    expect(controller.esFavorito(1), isTrue);
+    expect(repositorio.guardados, hasLength(1));
+    expect(controller.errorDetalle(1), 'Sin conexión.');
+  });
+
+  test('expone el meta de la ficha consultada', () async {
+    final api = ApiFalsa(
+      detalles: {
+        1: DetalleEstacion(
+          productos: const [],
+          meta: MetaDatos(
+            atribucion: MetaDatos.atribucionPorDefecto,
+            ultimaActualizacion: DateTime.utc(2026, 10, 9, 18, 10),
+          ),
+        ),
+      },
+    );
+    final controller = FavoritosController(
+      repositorio: RepositorioFalso(),
+      api: api,
+    );
+    await controller.cargar();
+
+    await controller.alternar(_gasolinera());
+
+    expect(controller.meta, isNotNull);
+    expect(controller.meta!.ultimaActualizacion, isNotNull);
   });
 }

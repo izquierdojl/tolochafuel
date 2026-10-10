@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/models/gasolinera.dart';
+import '../../../core/models/meta_datos.dart';
 import '../../../core/services/ubicacion.dart';
 import '../../configuracion/ui/configuracion_controller.dart';
 import '../data/cercanas_repositorio.dart';
@@ -26,6 +27,7 @@ class CercanasController extends ChangeNotifier {
 
   EstadoCercanas estado = EstadoCercanas.inicial;
   List<Gasolinera> gasolineras = const [];
+  MetaDatos? meta;
   String? mensajeError;
   String? avisoUbicacion;
 
@@ -87,6 +89,7 @@ class CercanasController extends ChangeNotifier {
       );
       _radioUsado = radio;
       gasolineras = resultado.gasolineras;
+      meta = resultado.meta;
       _establecer(
         gasolineras.isEmpty ? EstadoCercanas.vacio : EstadoCercanas.datos,
       );

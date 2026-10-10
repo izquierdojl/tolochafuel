@@ -12,7 +12,7 @@
 ## 3. CI y release
 
 - [x] 3.1 Job `linux` en `ci.yml` (dependencias del sistema, build, empaquetado y artefactos) que valide la plataforma en cada PR; verificación: PR con el job en verde y artefactos subidos
-- [ ] 3.2 Job `linux` en `release.yml` y `publicar` con `needs: [android, windows, linux]` copiando los tres assets con nombres estables; verificación: release con los tres assets adjuntos
+- [x] 3.2 Job `linux` en `release.yml` y `publicar` con `needs: [android, windows, linux]` copiando los tres assets con nombres estables; verificación: release con los tres assets adjuntos
 
 ## 4. Documentación y cierre
 

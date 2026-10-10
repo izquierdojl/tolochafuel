@@ -5,6 +5,7 @@ import 'cercanas_controller.dart';
 import 'mas_economicas_controller.dart';
 import 'widgets/aviso_sin_ubicacion.dart';
 import 'widgets/estados_cercanas.dart';
+import 'widgets/pie_frescura.dart';
 import 'widgets/tarjeta_gasolinera.dart';
 
 class MasEconomicasPantalla extends StatefulWidget {
@@ -52,12 +53,19 @@ class _Cuerpo extends StatelessWidget {
       case EstadoCercanas.vacio:
         final aviso = controller.avisoUbicacion;
         if (aviso != null) return AvisoSinUbicacion(mensaje: aviso);
-        return VacioCercanas(
-          sugerencia:
-              'No hay estaciones en el radio de '
-              '${controller.radioKm.toStringAsFixed(0)} km. '
-              'Prueba a ampliar el radio en Configuración o cambia de '
-              'ubicación.',
+        return Column(
+          children: [
+            Expanded(
+              child: VacioCercanas(
+                sugerencia:
+                    'No hay estaciones en el radio de '
+                    '${controller.radioKm.toStringAsFixed(0)} km. '
+                    'Prueba a ampliar el radio en Configuración o cambia de '
+                    'ubicación.',
+              ),
+            ),
+            PieFrescura(meta: controller.meta),
+          ],
         );
       case EstadoCercanas.datos:
         final tema = Theme.of(context);
@@ -92,6 +100,7 @@ class _Cuerpo extends StatelessWidget {
                 ),
               ),
             ),
+            PieFrescura(meta: controller.meta),
           ],
         );
     }

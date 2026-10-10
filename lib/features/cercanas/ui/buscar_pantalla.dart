@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'buscar_controller.dart';
 import 'cercanas_controller.dart';
 import 'widgets/estados_cercanas.dart';
+import 'widgets/pie_frescura.dart';
 import 'widgets/tarjeta_gasolinera.dart';
 
 class BuscarPantalla extends StatefulWidget {
@@ -122,10 +123,17 @@ class _Resultados extends StatelessWidget {
           onReintentar: controller.reintentar,
         );
       case EstadoCercanas.vacio:
-        return const VacioCercanas(
-          sugerencia:
-              'No se han encontrado gasolineras en ese territorio. '
-              'Prueba con otro municipio o provincia.',
+        return Column(
+          children: [
+            const Expanded(
+              child: VacioCercanas(
+                sugerencia:
+                    'No se han encontrado gasolineras en ese territorio. '
+                    'Prueba con otro municipio o provincia.',
+              ),
+            ),
+            PieFrescura(meta: controller.meta),
+          ],
         );
       case EstadoCercanas.datos:
         final tema = Theme.of(context);
@@ -159,6 +167,7 @@ class _Resultados extends StatelessWidget {
                 ),
               ),
             ),
+            PieFrescura(meta: controller.meta),
           ],
         );
     }

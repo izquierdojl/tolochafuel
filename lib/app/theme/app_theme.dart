@@ -20,17 +20,57 @@ abstract final class Paleta {
   static const moss400 = Color(0xFFB4C47E);
 }
 
+@immutable
+class ColoresTendencia extends ThemeExtension<ColoresTendencia> {
+  const ColoresTendencia({
+    required this.bajada,
+    required this.subida,
+    required this.neutra,
+  });
+
+  final Color bajada;
+  final Color subida;
+  final Color neutra;
+
+  @override
+  ColoresTendencia copyWith({Color? bajada, Color? subida, Color? neutra}) =>
+      ColoresTendencia(
+        bajada: bajada ?? this.bajada,
+        subida: subida ?? this.subida,
+        neutra: neutra ?? this.neutra,
+      );
+
+  @override
+  ColoresTendencia lerp(ThemeExtension<ColoresTendencia>? other, double t) {
+    if (other is! ColoresTendencia) return this;
+    return ColoresTendencia(
+      bajada: Color.lerp(bajada, other.bajada, t)!,
+      subida: Color.lerp(subida, other.subida, t)!,
+      neutra: Color.lerp(neutra, other.neutra, t)!,
+    );
+  }
+}
+
 abstract final class AppTheme {
   static ThemeData get oscuro => _construir(Brightness.dark);
   static ThemeData get claro => _construir(Brightness.light);
 
   static ThemeData _construir(Brightness brillo) {
+    final esquema = ColorScheme.fromSeed(
+      seedColor: Paleta.ochre500,
+      brightness: brillo,
+    );
+    final oscuro = brillo == Brightness.dark;
     return ThemeData(
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: Paleta.ochre500,
-        brightness: brillo,
-      ),
+      colorScheme: esquema,
       fontFamily: 'Inter',
+      extensions: [
+        ColoresTendencia(
+          bajada: oscuro ? Paleta.moss400 : Paleta.pine600,
+          subida: esquema.error,
+          neutra: esquema.onSurfaceVariant,
+        ),
+      ],
     );
   }
 }

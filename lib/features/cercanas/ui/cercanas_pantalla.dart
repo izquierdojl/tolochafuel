@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'cercanas_controller.dart';
 import 'widgets/aviso_sin_ubicacion.dart';
 import 'widgets/estados_cercanas.dart';
+import 'widgets/pie_frescura.dart';
 import 'widgets/tarjeta_gasolinera.dart';
 
 class CercanasPantalla extends StatefulWidget {
@@ -51,19 +52,34 @@ class _Cuerpo extends StatelessWidget {
       case EstadoCercanas.vacio:
         final aviso = controller.avisoUbicacion;
         if (aviso != null) return AvisoSinUbicacion(mensaje: aviso);
-        return VacioCercanas(
-          sugerencia:
-              'No hay gasolineras en el radio de '
-              '${controller.radioKm.toStringAsFixed(0)} km. '
-              'Prueba a ampliar el radio en Configuración o cambia de '
-              'ubicación.',
+        return Column(
+          children: [
+            Expanded(
+              child: VacioCercanas(
+                sugerencia:
+                    'No hay gasolineras en el radio de '
+                    '${controller.radioKm.toStringAsFixed(0)} km. '
+                    'Prueba a ampliar el radio en Configuración o cambia de '
+                    'ubicación.',
+              ),
+            ),
+            PieFrescura(meta: controller.meta),
+          ],
         );
       case EstadoCercanas.datos:
-        return ListView.builder(
-          padding: const EdgeInsets.only(top: 4, bottom: 8),
-          itemCount: controller.gasolineras.length,
-          itemBuilder: (context, indice) =>
-              TarjetaGasolinera(gasolinera: controller.gasolineras[indice]),
+        return Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.only(top: 4, bottom: 8),
+                itemCount: controller.gasolineras.length,
+                itemBuilder: (context, indice) => TarjetaGasolinera(
+                  gasolinera: controller.gasolineras[indice],
+                ),
+              ),
+            ),
+            PieFrescura(meta: controller.meta),
+          ],
         );
     }
   }

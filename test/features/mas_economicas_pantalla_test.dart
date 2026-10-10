@@ -152,6 +152,29 @@ void main() {
     expect(repositorio.radios, [40]);
   });
 
+  test('expone el meta de la respuesta y lo conserva en vacío', () async {
+    final controller = MasEconomicasController(
+      repositorio: RepositorioFalso()..resultado = _resultado(),
+      ubicacion: UbicacionFalsa(
+        ResultadoUbicacion.concedida,
+        posicion: _posicion(),
+      ),
+    );
+    await controller.inicializar();
+    expect(controller.meta, isNotNull);
+
+    final vacio = MasEconomicasController(
+      repositorio: RepositorioFalso()..resultado = _resultado(vacio: true),
+      ubicacion: UbicacionFalsa(
+        ResultadoUbicacion.concedida,
+        posicion: _posicion(),
+      ),
+    );
+    await vacio.inicializar();
+    expect(vacio.estado, EstadoCercanas.vacio);
+    expect(vacio.meta, isNotNull);
+  });
+
   test('sin ubicación avisa y queda en estado vacío', () async {
     final controller = MasEconomicasController(
       repositorio: RepositorioFalso()..resultado = _resultado(),
@@ -211,6 +234,7 @@ void main() {
     expect(find.text('Ballenoil Segovia'), findsOneWidget);
     expect(find.text('a 3,0 km'), findsOneWidget);
     expect(find.text('1,729 €/L'), findsOneWidget);
+    expect(find.textContaining('Datos del'), findsOneWidget);
   });
 
   testWidgets('estado vacío si no hay estaciones en el radio', (tester) async {
@@ -245,6 +269,7 @@ void main() {
     await tester.pumpWidget(_pantalla(controller));
     await tester.pumpAndSettle();
     expect(find.text('Sin conexión.'), findsOneWidget);
+    expect(find.textContaining('Datos del'), findsNothing);
 
     repositorio
       ..error = null
