@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../cercanas/ui/widgets/pie_atribucion.dart';
 import '../../cercanas/ui/widgets/tarjeta_gasolinera.dart';
 import '../data/favorito.dart';
 import 'favoritos_controller.dart';
@@ -27,20 +26,12 @@ class _FavoritosPantallaState extends State<FavoritosPantalla> {
   @override
   Widget build(BuildContext context) {
     final favoritos = context.watch<FavoritosController>().favoritos;
-    return Column(
-      children: [
-        Expanded(
-          child: favoritos.isEmpty
-              ? const _FavoritosVacio()
-              : ListView.builder(
-                  padding: const EdgeInsets.only(top: 4, bottom: 8),
-                  itemCount: favoritos.length,
-                  itemBuilder: (context, indice) =>
-                      _FavoritoConPrecio(favorito: favoritos[indice]),
-                ),
-        ),
-        const PieAtribucion(meta: null),
-      ],
+    if (favoritos.isEmpty) return const _FavoritosVacio();
+    return ListView.builder(
+      padding: const EdgeInsets.only(top: 4, bottom: 8),
+      itemCount: favoritos.length,
+      itemBuilder: (context, indice) =>
+          _FavoritoConPrecio(favorito: favoritos[indice]),
     );
   }
 }

@@ -110,6 +110,29 @@ class PreciosGasolinaApi {
     );
   }
 
+  Future<ResultadoGasolineras> masBaratasCerca({
+    required double lat,
+    required double lng,
+    double radioKm = 25,
+    int limite = limiteMaximo,
+  }) async {
+    final cuerpo = await cliente.getJson(
+      '/v1/stations/cheapest',
+      parametros: {
+        'lat': lat.toString(),
+        'lng': lng.toString(),
+        'radius_km': radioKm.clamp(0.1, radioMaximoKm).toString(),
+        'fuel': Carburante.gasolina95.idApi,
+        'limit': limite.clamp(1, limiteMaximo).toString(),
+      },
+    );
+
+    final data = _dataDe(cuerpo);
+    final meta = MetaDatos.fromJson(_metaDe(cuerpo));
+
+    return ResultadoGasolineras(gasolineras: _estacionesDe(data), meta: meta);
+  }
+
   Future<DetalleEstacion> detalle(int id) async {
     final cuerpo = await cliente.getJson('/v1/stations/$id');
     final data = _dataDe(cuerpo);

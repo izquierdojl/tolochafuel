@@ -67,7 +67,6 @@ void main() {
 
     expect(find.text('Aún no tienes gasolineras favoritas'), findsOneWidget);
     expect(find.textContaining('corazón'), findsOneWidget);
-    expect(find.textContaining('Gasolina hoy'), findsOneWidget);
   });
 
   testWidgets('muestra el precio vigente y la atribución', (tester) async {
@@ -87,7 +86,6 @@ void main() {
     expect(find.text('Ballenoil Democracia'), findsOneWidget);
     expect(find.text('Gasolina 95 E5'), findsOneWidget);
     expect(find.text('1,729 €/L'), findsOneWidget);
-    expect(find.textContaining('Gasolina hoy'), findsOneWidget);
   });
 
   testWidgets('error de precio por favorito con reintento', (tester) async {

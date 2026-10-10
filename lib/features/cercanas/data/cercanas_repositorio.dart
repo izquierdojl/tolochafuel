@@ -45,6 +45,24 @@ class CercanasRepositorio {
     });
   }
 
+  Future<ResultadoGasolineras> masEconomicas({
+    required double lat,
+    required double lng,
+    required double radioKm,
+  }) {
+    final clave =
+        'baratas:${lat.toStringAsFixed(3)},${lng.toStringAsFixed(3)},$radioKm';
+    return _conCacheListado(clave, () async {
+      final resultado = await api.masBaratasCerca(
+        lat: lat,
+        lng: lng,
+        radioKm: radioKm,
+        limite: limiteListado,
+      );
+      return _conFichas(resultado);
+    });
+  }
+
   Future<List<Lugar>> buscarLugar(String consulta) => api.buscarLugar(consulta);
 
   void limpiarCache() {
