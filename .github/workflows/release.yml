@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
 
       - uses: subosito/flutter-action@v2
         with:
@@ -31,11 +33,41 @@ jobs:
           name: apk
           path: build/app/outputs/flutter-apk/app-release.apk
 
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.7'
+          channel: stable
+          cache: true
+
+      - name: Dependencias Dart
+        run: flutter pub get
+
+      - name: Build Windows
+        run: flutter build windows --release
+
+      - name: Empaquetar ZIP portable
+        shell: pwsh
+        run: Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath tolochafuel-windows-x64.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: tolochafuel-windows-x64.zip
+
   publicar:
-    needs: [android]
+    needs: [android, windows]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
 
       - uses: actions/download-artifact@v4
         with:
@@ -51,6 +83,7 @@ jobs:
         run: |
           mkdir -p release
           cp artefactos/apk/app-release.apk release/tolochafuel.apk
+          cp artefactos/windows/tolochafuel-windows-x64.zip release/tolochafuel-windows-x64.zip
 
       - name: Publicar release
         env:

@@ -1,12 +1,12 @@
-# Spec Delta
+# gasolineras-cercanas Specification
 
 ## Purpose
 
-Permite consultar las gasolineras próximas a una ubicación con sus precios de carburante,
-ordenadas por distancia, mostrando la frescura de los datos y la atribución obligatoria
-de la fuente.
+Permite consultar las gasolineras próximas a una ubicación con los precios de todos los
+productos que ofrece cada una, ordenadas por distancia, mostrando la frescura de los
+datos y la atribución obligatoria de la fuente.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Ubicación del usuario
 
@@ -39,20 +39,34 @@ distancia, indicando la distancia en kilómetros con un decimal.
 - **WHEN** existen gasolineras dentro del radio de búsqueda
 - **THEN** se listan de la más cercana a la más lejana, cada una con su distancia en km
 
-### Requirement: Precio del carburante seleccionado
+### Requirement: Productos y precios por gasolinera
 
-Cada elemento de la lista SHALL mostrar el precio del carburante seleccionado (Gasolina 95
-por defecto) y la pantalla SHALL permitir cambiar entre al menos Gasolina 95 y Gasóleo A.
+Cada tarjeta SHALL mostrar, bajo el nombre y la dirección, todos los productos que ofrece
+la estación (gasolinas, gasóleos, GLP/GNC y otros) con su etiqueta, precio y unidad
+(€/L o €/kg), obtenidos de la ficha de la estación (`/v1/stations/{id}`).
 
-#### Scenario: Cambio de carburante
+#### Scenario: Estación con varios productos
 
-- **WHEN** el usuario selecciona Gasóleo A en el selector
-- **THEN** la lista se recarga con el precio de gasóleo A de cada gasolinera
+- **WHEN** la ficha de una gasolinera devuelve varios combustibles o productos
+- **THEN** la tarjeta muestra cada uno con su etiqueta, precio y unidad
 
-#### Scenario: Gasolinera sin precio del carburante
+#### Scenario: Ficha no disponible
 
-- **WHEN** una gasolinera del radio no comunica precio del carburante seleccionado
-- **THEN** se muestra «Sin precio» en lugar de una cifra, sin romper el orden por distancia
+- **WHEN** no se puede obtener la ficha de una gasolinera
+- **THEN** la tarjeta se muestra igualmente con nombre, dirección y distancia, indicando
+  «Precios no disponibles»
+
+### Requirement: Identidad Tolocha en la cabecera
+
+La cabecera SHALL mostrar el emblema Tolocha adaptado a carburantes (surtidor) y la marca
+«TolochaFuel», con «Fuel» en el color de acento de la paleta, usando la tipografía de
+marca (Inter) empaquetada en la app.
+
+#### Scenario: Cabecera de la pantalla principal
+
+- **WHEN** el usuario abre la app
+- **THEN** la cabecera muestra el emblema Tolocha y la marca «TolochaFuel» con «Fuel» en
+  el color de acento
 
 ### Requirement: Frescura de los datos y atribución
 
@@ -84,13 +98,13 @@ español.
 ### Requirement: Límites de la API y caché en memoria
 
 La app SHALL respetar los límites de la API (radio ≤ 50 km, `limit` ≤ 50) y SHALL cachear
-las respuestas en memoria al menos hasta la siguiente actualización de la fuente
-(≈ 8:00 y 20:00), sin polling periódico.
+en memoria el listado y la ficha de cada estación (`/v1/stations/{id}`) al menos hasta la
+siguiente actualización de la fuente (≈ 8:00 y 20:00), sin polling periódico.
 
 #### Scenario: Navegación repetida
 
-- **WHEN** el usuario vuelve a la pantalla principal sin cambiar ubicación ni carburante
-- **THEN** la app reutiliza la respuesta cacheada sin repetir la petición
+- **WHEN** el usuario vuelve a la pantalla principal sin cambiar de ubicación
+- **THEN** la app reutiliza las respuestas cacheadas sin repetir las peticiones
 
 #### Scenario: Datos servidos en modo stale
 

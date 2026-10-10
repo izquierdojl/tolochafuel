@@ -1,0 +1,135 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:tolochafuel/core/api/api_client.dart';
+import 'package:tolochafuel/core/api/precios_gasolina_api.dart';
+import 'package:tolochafuel/core/models/detalle_estacion.dart';
+import 'package:tolochafuel/core/models/gasolinera.dart';
+import 'package:tolochafuel/core/models/lugar.dart';
+import 'package:tolochafuel/core/models/meta_datos.dart';
+import 'package:tolochafuel/core/models/producto_precio.dart';
+import 'package:tolochafuel/features/cercanas/data/cercanas_repositorio.dart';
+
+Gasolinera _estacion(int id, {double? distancia}) => Gasolinera(
+  id: id,
+  nombre: 'EESS $id',
+  lat: 40,
+  lng: -3,
+  urlWeb: '',
+  distanciaKm: distancia,
+);
+
+MetaDatos _meta() => MetaDatos(
+  atribucion: MetaDatos.atribucionPorDefecto,
+  proximaActualizacion: DateTime.now().add(const Duration(hours: 6)),
+);
+
+class ApiFalsa extends PreciosGasolinaApi {
+  int llamadasCercanas = 0;
+  int llamadasMasBaratas = 0;
+  int llamadasFichas = 0;
+  List<int> idsConFallo = const [];
+
+  @override
+  Future<ResultadoGasolineras> cercanas({
+    required double lat,
+    required double lng,
+    double radioKm = 5,
+    int limite = PreciosGasolinaApi.limiteMaximo,
+  }) async {
+    llamadasCercanas++;
+    return ResultadoGasolineras(
+      gasolineras: [_estacion(1, distancia: 1), _estacion(2, distancia: 2)],
+      meta: _meta(),
+    );
+  }
+
+  @override
+  Future<ResultadoGasolineras> masBaratas({
+    required String nivel,
+    required String codigo,
+    int limite = PreciosGasolinaApi.limiteMaximo,
+  }) async {
+    llamadasMasBaratas++;
+    return ResultadoGasolineras(
+      gasolineras: [_estacion(1), _estacion(2)],
+      meta: _meta(),
+      areaNombre: 'Madrid',
+    );
+  }
+
+  @override
+  Future<DetalleEstacion> detalle(int id) async {
+    llamadasFichas++;
+    if (idsConFallo.contains(id)) {
+      throw const ApiException(mensaje: 'Ficha no disponible');
+    }
+    return DetalleEstacion(
+      productos: const [
+        ProductoPrecio(
+          idApi: 'gasoline_95',
+          etiqueta: 'Gasolina 95 E5',
+          unidad: 'L',
+          precio: 1.7,
+        ),
+      ],
+      proximaActualizacion: DateTime.now().add(const Duration(hours: 6)),
+    );
+  }
+}
+
+void main() {
+  test('cercanas fusiona la ficha de cada estación', () async {
+    final api = ApiFalsa();
+    final repositorio = CercanasRepositorio(api: api);
+
+    final resultado = await repositorio.cercanas(lat: 40, lng: -3);
+
+    expect(resultado.gasolineras, hasLength(2));
+    expect(resultado.gasolineras.first.productos, hasLength(1));
+    expect(
+      resultado.gasolineras.first.productos.first.etiqueta,
+      'Gasolina 95 E5',
+    );
+    expect(api.llamadasCercanas, 1);
+    expect(api.llamadasFichas, 2);
+  });
+
+  test('la segunda llamada usa la caché y no repite peticiones', () async {
+    final api = ApiFalsa();
+    final repositorio = CercanasRepositorio(api: api);
+
+    await repositorio.cercanas(lat: 40, lng: -3);
+    await repositorio.cercanas(lat: 40, lng: -3);
+
+    expect(api.llamadasCercanas, 1);
+    expect(api.llamadasFichas, 2);
+  });
+
+  test('un fallo de ficha no rompe la lista', () async {
+    final api = ApiFalsa()..idsConFallo = [2];
+    final repositorio = CercanasRepositorio(api: api);
+
+    final resultado = await repositorio.cercanas(lat: 40, lng: -3);
+
+    expect(resultado.gasolineras, hasLength(2));
+    expect(resultado.gasolineras[0].productos, hasLength(1));
+    expect(resultado.gasolineras[1].productos, isEmpty);
+    expect(api.llamadasFichas, 2);
+  });
+
+  test('masBaratas fusiona también las fichas del territorio', () async {
+    final api = ApiFalsa();
+    final repositorio = CercanasRepositorio(api: api);
+
+    final resultado = await repositorio.masBaratas(
+      lugar: const Lugar(
+        nombre: 'Madrid',
+        nivel: 'municipality',
+        codigo: '4354',
+      ),
+    );
+
+    expect(resultado.gasolineras.first.productos, isNotEmpty);
+    expect(api.llamadasMasBaratas, 1);
+    expect(api.llamadasFichas, 2);
+  });
+}
