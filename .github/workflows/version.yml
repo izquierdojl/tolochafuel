@@ -2,7 +2,7 @@ name: Versionado
 
 on:
   push:
-    branches: [dev]
+    branches: [main]
 
 permissions:
   contents: write
@@ -57,7 +57,7 @@ jobs:
 
       - name: Publicar commit y tag
         if: steps.bump.outputs.bump != ''
-        run: git push origin HEAD:dev --follow-tags
+        run: git push origin HEAD:main --follow-tags
 
   publicar:
     needs: bump
