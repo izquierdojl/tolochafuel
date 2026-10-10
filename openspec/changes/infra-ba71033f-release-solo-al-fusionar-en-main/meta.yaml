@@ -1,8 +1,0 @@
-tipo: infra
-id: ba71033f
-titulo: "Release solo al fusionar en main"
-autor:
-  nombre: "izquierdojl"
-  email: "izquierdojl@users.noreply.github.com"
-fecha: "2026-10-10T09:38:51+02:00"
-branch: dev
