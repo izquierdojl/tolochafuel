@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=TolochaFuel
+Comment=Precios de carburantes de las gasolineras cercanas en España
+Exec=tolochafuel
+Icon=io.github.izquierdojl.TolochaFuel
+Terminal=false
+Categories=Utility;
+Keywords=gasolina;gasolineras;carburantes;precios;

@@ -1,0 +1,8 @@
+tipo: infra
+id: 2ac760b1
+titulo: "Release para Linux (tar.gz, AppImage y Flatpak)"
+autor:
+  nombre: "izquierdojl"
+  email: "izquierdojl@users.noreply.github.com"
+fecha: "2026-10-10T12:33:44+02:00"
+branch: dev

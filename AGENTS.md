@@ -30,7 +30,7 @@ change propuesto.
 | Persistencia local | `shared_preferences` (favoritos y ajustes). |
 | Calidad | `flutter analyze` + `flutter test` + `dart format`; widget tests de los estados clave. |
 | Entorno | WSL2 (Ubuntu). Código en `~/dev`, nunca en `/mnt/c`. Flutter, JDK 17 y Android SDK en rutas de usuario. |
-| Distribución | GitHub Releases: **APK** (Android) y **ZIP portable** (Windows); iOS, web/PWA y Play Store aplazados; **sin Docker**. |
+| Distribución | GitHub Releases: **APK** (Android), **ZIP portable** (Windows) y **tar.gz/AppImage/Flatpak** (Linux); iOS, web/PWA y Play Store aplazados; **sin Docker**. |
 
 Stack cerrado: **no se cambia de framework, librerías base ni gestor de paquetes** sin
 decisión explícita del usuario y actualización de este documento.
@@ -68,6 +68,9 @@ decisión explícita del usuario y actualización de este documento.
   nunca se añaden permisos innecesarios.
 - **Windows**: plataforma secundaria; debe mantenerse compilando (`flutter build windows`
   en CI). Ubicación con fallback manual; «navegar» abre Google Maps en el navegador.
+- **Linux**: plataforma secundaria de escritorio; se publican tar.gz, AppImage y Flatpak
+  en GitHub Releases. Sin ubicación nativa (`geolocator` no soporta Linux): se muestra el
+  aviso y se usa la búsqueda manual (Buscar).
 - **iOS**: aplazado hasta que el usuario decida pagar la cuenta Apple Developer
   (TestFlight). El código no debe depender de APIs solo-Android.
 - **Web**: aplazado (posible PWA en GitHub Pages como change futuro).
@@ -121,7 +124,9 @@ decisión explícita del usuario y actualización de este documento.
   `node scripts/bump.js <bump>` (sincroniza la versión en `pubspec.yaml` + `package.json`,
   commit `chore(release): vX.Y.Z`, tag `vX.Y.Z`) → `release.yml` construye y publica el
   APK en GitHub Releases (el ZIP de Windows se añade con su change).
-- Los assets usan nombres estables (`tolochafuel.apk`, `tolochafuel-windows-x64.zip`)
+- Los assets usan nombres estables (`tolochafuel.apk`, `tolochafuel-windows-x64.zip`,
+`tolochafuel-linux-x64.tar.gz`, `tolochafuel-linux-x64.AppImage`,
+`tolochafuel-linux-x64.flatpak`)
   para permitir enlaces de descarga directa tipo
   `https://github.com/izquierdojl/tolochafuel/releases/latest/download/tolochafuel.apk`.
 - Los skills de OpenSpec se regeneran con `openspec update`: **las reglas de release
@@ -133,8 +138,10 @@ decisión explícita del usuario y actualización de este documento.
   commitlint en PRs. Corre en PRs a `dev`/`main` y en push a `main` (no en push a `dev`).
 - `version.yml` (push a `main`) → bump + tag + llama a `release.yml`.
 - `release.yml`: job `android` (ubuntu, `flutter build apk --release`) y publicador de
-  GitHub Releases. La firma de producción Android queda aplazada: el APK se sirve con la
-  firma de debug de Flutter (válido para sideload; Play Store es un change futuro).
+  GitHub Releases. El APK se firma con el keystore de release, materializado desde los
+  secretos `ANDROID_KEYSTORE_*` (nunca en el repo; copia de seguridad local en
+  `~/keystores/tolochafuel/`), de modo que las actualizaciones se instalan encima sin
+  desinstalar; Play Store sigue aplazado como change futuro.
 - **Sin Docker**: la app no tiene servidor; los datos se consumen directamente de la API
   pública. Esta decisión es cerrada (revisable solo con decisión explícita del usuario).
 
