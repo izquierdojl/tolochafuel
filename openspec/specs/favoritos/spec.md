@@ -39,14 +39,14 @@ SHALL conservarse entre ejecuciones de la app.
 
 ### Requirement: Sección Favoritos con precio vigente
 
-La app SHALL ofrecer una sección «Favoritos» que liste las gasolineras marcadas; el precio
-SHALL mostrarse consultando la API por identificador (`/v1/stations/{id}`) y con la
-atribución CC BY 4.0 visible.
+La app SHALL ofrecer una sección «Favoritos» que liste las gasolineras marcadas y muestre
+su precio consultando la API por identificador (`/v1/stations/{id}`); la atribución
+completa vive en Configuración → Acerca de.
 
 #### Scenario: Consulta de precios
 
 - **WHEN** el usuario abre la sección Favoritos
-- **THEN** ve cada gasolinera marcada con su precio vigente y la atribución
+- **THEN** ve cada gasolinera marcada con su precio vigente
 
 #### Scenario: Favorito sin conexión
 
