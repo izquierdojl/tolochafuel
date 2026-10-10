@@ -9,7 +9,7 @@
 ## 2. Estado compartido
 
 - [x] 2.1 `FavoritosController` (provider) con `esFavorito`, `alternar` y carga inicial
-- [ ] 2.2 Registrar el provider en `main.dart` junto al de cercanas
+- [x] 2.2 Registrar el provider en `main.dart` junto al de cercanas
 
 ## 3. Interfaz
 
