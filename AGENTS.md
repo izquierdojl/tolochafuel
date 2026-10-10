@@ -138,8 +138,10 @@ decisión explícita del usuario y actualización de este documento.
   commitlint en PRs. Corre en PRs a `dev`/`main` y en push a `main` (no en push a `dev`).
 - `version.yml` (push a `main`) → bump + tag + llama a `release.yml`.
 - `release.yml`: job `android` (ubuntu, `flutter build apk --release`) y publicador de
-  GitHub Releases. La firma de producción Android queda aplazada: el APK se sirve con la
-  firma de debug de Flutter (válido para sideload; Play Store es un change futuro).
+  GitHub Releases. El APK se firma con el keystore de release, materializado desde los
+  secretos `ANDROID_KEYSTORE_*` (nunca en el repo; copia de seguridad local en
+  `~/keystores/tolochafuel/`), de modo que las actualizaciones se instalan encima sin
+  desinstalar; Play Store sigue aplazado como change futuro.
 - **Sin Docker**: la app no tiene servidor; los datos se consumen directamente de la API
   pública. Esta decisión es cerrada (revisable solo con decisión explícita del usuario).
 
