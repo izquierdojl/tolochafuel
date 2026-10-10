@@ -25,6 +25,7 @@ MetaDatos _meta() => MetaDatos(
 class ApiFalsa extends PreciosGasolinaApi {
   int llamadasCercanas = 0;
   int llamadasMasBaratas = 0;
+  int llamadasMasBaratasCerca = 0;
   int llamadasFichas = 0;
   List<int> idsConFallo = const [];
 
@@ -53,6 +54,20 @@ class ApiFalsa extends PreciosGasolinaApi {
       gasolineras: [_estacion(1), _estacion(2)],
       meta: _meta(),
       areaNombre: 'Madrid',
+    );
+  }
+
+  @override
+  Future<ResultadoGasolineras> masBaratasCerca({
+    required double lat,
+    required double lng,
+    double radioKm = 25,
+    int limite = PreciosGasolinaApi.limiteMaximo,
+  }) async {
+    llamadasMasBaratasCerca++;
+    return ResultadoGasolineras(
+      gasolineras: [_estacion(1, distancia: 3), _estacion(2, distancia: 5)],
+      meta: _meta(),
     );
   }
 
@@ -131,5 +146,25 @@ void main() {
     expect(resultado.gasolineras.first.productos, isNotEmpty);
     expect(api.llamadasMasBaratas, 1);
     expect(api.llamadasFichas, 2);
+  });
+
+  test('masEconomicas fusiona fichas y cachea por radio', () async {
+    final api = ApiFalsa();
+    final repositorio = CercanasRepositorio(api: api);
+
+    final resultado = await repositorio.masEconomicas(
+      lat: 40.417,
+      lng: -3.704,
+      radioKm: 25,
+    );
+    expect(resultado.gasolineras.first.productos, isNotEmpty);
+    expect(resultado.gasolineras.first.distanciaKm, 3);
+    expect(api.llamadasMasBaratasCerca, 1);
+
+    await repositorio.masEconomicas(lat: 40.417, lng: -3.704, radioKm: 25);
+    expect(api.llamadasMasBaratasCerca, 1);
+
+    await repositorio.masEconomicas(lat: 40.417, lng: -3.704, radioKm: 40);
+    expect(api.llamadasMasBaratasCerca, 2);
   });
 }

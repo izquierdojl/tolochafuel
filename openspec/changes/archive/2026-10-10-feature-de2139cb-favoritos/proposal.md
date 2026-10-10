@@ -12,7 +12,9 @@ buscarlas en la lista de cercanas.
 - Persistencia local con `shared_preferences`: sin cuentas, sin red, sin servidor.
 - Sección «Favoritos» con las gasolineras marcadas y su precio vigente, consultado a la
   API por identificador, con la misma atribución CC BY 4.0.
-- Navegación inferior entre «Cercanas» y «Favoritos».
+- La sección Favoritos se integrará en el menú lateral del change
+  `feature-1510a187-menu-lateral-de-navegacion-y-configuracion`; sin barra de navegación
+  inferior propia.
 
 ## Capabilities
 

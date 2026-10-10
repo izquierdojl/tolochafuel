@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../core/models/gasolinera.dart';
 import '../../../../core/utilidades/formato.dart';
+import '../../../favoritos/ui/favoritos_controller.dart';
 
 class TarjetaGasolinera extends StatelessWidget {
   const TarjetaGasolinera({super.key, required this.gasolinera});
@@ -12,6 +14,9 @@ class TarjetaGasolinera extends StatelessWidget {
   Widget build(BuildContext context) {
     final tema = Theme.of(context);
     final esquema = tema.colorScheme;
+    final esFavorito = context.watch<FavoritosController>().esFavorito(
+      gasolinera.id,
+    );
     final subtitulo = [
       if (gasolinera.direccion != null) gasolinera.direccion!,
       if (gasolinera.municipio != null) gasolinera.municipio!,
@@ -60,6 +65,21 @@ class TarjetaGasolinera extends StatelessWidget {
                     formatearDistancia(gasolinera.distanciaKm),
                     style: estiloSecundario,
                   ),
+                IconButton(
+                  tooltip: esFavorito
+                      ? 'Quitar de favoritos'
+                      : 'Añadir a favoritos',
+                  visualDensity: VisualDensity.compact,
+                  iconSize: 20,
+                  color: esFavorito
+                      ? esquema.primary
+                      : esquema.onSurfaceVariant,
+                  icon: Icon(
+                    esFavorito ? Icons.favorite : Icons.favorite_border,
+                  ),
+                  onPressed: () =>
+                      context.read<FavoritosController>().alternar(gasolinera),
+                ),
               ],
             ),
             if (subtitulo.isNotEmpty) ...[

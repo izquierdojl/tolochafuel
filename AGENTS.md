@@ -58,8 +58,9 @@ decisión explícita del usuario y actualización de este documento.
   ≤ 50, radio ≤ 50 km, histórico ≤ 90 días.
 - **Atribución obligatoria y visible** (CC BY 4.0): «Gasolina hoy (preciosgasolina.es),
   con datos del Ministerio para la Transición Ecológica y el Reto Demográfico».
-- Cuando se muestren precios, mostrar también la antigüedad de los datos
-  (`meta.last_updated`): no son precios en tiempo real.
+- La atribución y la frescura de los datos viven en Configuración → Acerca de, no junto
+  a los precios (decisión del usuario, 2026-10-10); los precios se actualizan 2 veces al
+  día y no son tiempo real.
 
 ## 5. Plataformas
 
@@ -151,7 +152,9 @@ decisión explícita del usuario y actualización de este documento.
 
 1. Sin backend propio ni Docker mientras la API pública cubra el caso; cualquier caché
    propia sería un change nuevo con decisión del usuario.
-2. Atribución CC BY 4.0 siempre visible: es requisito de licencia, no un extra.
+2. Atribución CC BY 4.0 en Configuración → Acerca de (decisión del usuario, 2026-10-10;
+   sustituye a la regla anterior de mostrarla junto a los precios, con el riesgo de
+   licencia asumido por el usuario).
 3. Android-first: ninguna funcionalidad puede romper Android; Windows es secundario pero
    debe mantenerse verde en CI.
 4. iOS no se paga ni se publica hasta decisión explícita del usuario.
