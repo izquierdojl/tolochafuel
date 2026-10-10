@@ -15,6 +15,7 @@ import 'package:tolochafuel/core/services/ubicacion.dart';
 import 'package:tolochafuel/features/cercanas/data/cercanas_repositorio.dart';
 import 'package:tolochafuel/features/cercanas/ui/cercanas_controller.dart';
 import 'package:tolochafuel/features/cercanas/ui/cercanas_pantalla.dart';
+import 'package:tolochafuel/features/favoritos/ui/favoritos_controller.dart';
 
 class UbicacionFalsa extends Ubicacion {
   UbicacionFalsa(this.resultado, {this.posicion});
@@ -118,8 +119,11 @@ ResultadoGasolineras _resultado(List<Gasolinera> estaciones) =>
       ),
     );
 
-Widget _app(CercanasController controller) => ChangeNotifierProvider.value(
-  value: controller,
+Widget _app(CercanasController controller) => MultiProvider(
+  providers: [
+    ChangeNotifierProvider.value(value: controller),
+    ChangeNotifierProvider(create: (_) => FavoritosController()),
+  ],
   child: const MaterialApp(home: CercanasPantalla()),
 );
 

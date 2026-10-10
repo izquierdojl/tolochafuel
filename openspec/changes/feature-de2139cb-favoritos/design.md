@@ -30,9 +30,10 @@ ni backend por decisión de proyecto. Ver `proposal.md` para la motivación.
   Favoritos comparten el mismo estado reactivo.
 - **Precios de favoritos**: `GET /v1/stations/{id}` por cada favorito con la caché en
   memoria del cliente API; las consultas se lanzan al abrir la sección, nunca en bucle.
-- **UI**: `NavigationBar` inferior con dos destinos («Cercanas» y «Favoritos»); la
-  tarjeta existente gana el icono de favorito y conserva la acción «Navegar» cuando el
-  change de navegación esté aplicado.
+- **UI**: `FavoritosPantalla` sin navegación propia —su integración como sección la hará
+  el change `feature-1510a187-menu-lateral-de-navegacion-y-configuracion`—; la tarjeta
+  existente gana el icono de favorito y conserva la acción «Navegar» cuando el change de
+  navegación esté aplicado.
 - **Errores por favorito**: si la consulta de precio falla, el favorito se muestra igual
   (identidad local) con «Precio no disponible» y reintento; nunca se elimina solo.
 
