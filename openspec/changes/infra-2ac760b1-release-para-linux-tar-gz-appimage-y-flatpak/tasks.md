@@ -16,8 +16,8 @@
 
 ## 4. Documentación y cierre
 
-- [ ] 4.1 AGENTS.md (§2 distribución, §5 plataformas, §8 nombres de assets) y README (descarga e instrucciones por formato); verificación: revisión del diff
-- [ ] 4.2 `flutter analyze` + `flutter test` en verde y `dart format` aplicado
+- [x] 4.1 AGENTS.md (§2 distribución, §5 plataformas, §8 nombres de assets) y README (descarga e instrucciones por formato); verificación: revisión del diff
+- [x] 4.2 `flutter analyze` + `flutter test` en verde y `dart format` aplicado
 
 ## Workflow follow-up
 

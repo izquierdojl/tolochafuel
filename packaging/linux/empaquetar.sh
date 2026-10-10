@@ -20,6 +20,13 @@ fi
 rm -rf "$DIST"
 mkdir -p "$DIST"
 
+ICONO_512="$DIST/icon-512.png"
+if command -v convert >/dev/null 2>&1; then
+  convert "$ICONO" -resize 512x512 "$ICONO_512"
+else
+  cp "$ICONO" "$ICONO_512"
+fi
+
 echo "==> tar.gz"
 cp -r "$BUNDLE" "$DIST/tolochafuel"
 tar -C "$DIST" -czf "$DIST/tolochafuel-linux-x64.tar.gz" tolochafuel
@@ -34,8 +41,8 @@ cp -r "$BUNDLE/." "$APPDIR/usr/bin/"
 install -Dm644 "$DIR/$APP_ID.desktop" "$APPDIR/$APP_ID.desktop"
 install -Dm644 "$DIR/$APP_ID.desktop" \
   "$APPDIR/usr/share/applications/$APP_ID.desktop"
-install -Dm644 "$ICONO" "$APPDIR/$APP_ID.png"
-install -Dm644 "$ICONO" \
+install -Dm644 "$ICONO_512" "$APPDIR/$APP_ID.png"
+install -Dm644 "$ICONO_512" \
   "$APPDIR/usr/share/icons/hicolor/512x512/apps/$APP_ID.png"
 cat > "$APPDIR/AppRun" <<'EOF'
 #!/bin/sh
@@ -60,7 +67,7 @@ mkdir -p "$WORK/fuente"
 cp -r "$BUNDLE/." "$WORK/fuente/"
 install -Dm644 "$DIR/$APP_ID.desktop" "$WORK/fuente/$APP_ID.desktop"
 install -Dm644 "$DIR/$APP_ID.yml" "$WORK/fuente/$APP_ID.yml"
-install -Dm644 "$ICONO" "$WORK/fuente/icon.png"
+install -Dm644 "$ICONO_512" "$WORK/fuente/icon.png"
 
 flatpak-builder --user --force-clean --disable-rofiles-fuse \
   --repo="$WORK/repo" "$WORK/build" "$WORK/fuente/$APP_ID.yml"

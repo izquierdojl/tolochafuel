@@ -61,7 +61,7 @@ jobs:
       - name: Dependencias del sistema
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev flatpak flatpak-builder elfutils
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev flatpak flatpak-builder elfutils imagemagick
           flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
           flatpak install --user -y flathub org.gnome.Platform//46 org.gnome.Sdk//46
 
