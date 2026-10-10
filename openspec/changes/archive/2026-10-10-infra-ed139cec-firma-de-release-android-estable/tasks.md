@@ -9,7 +9,7 @@
 
 - [x] 2.1 `android/app/build.gradle.kts`: `signingConfigs.release` desde `android/key.properties` con caída a debug si no existe; verificación: `flutter build apk --release` local compila y `apksigner verify --print-certs` muestra el CN de TolochaFuel
 - [x] 2.2 `.gitignore`: excluir `android/key.properties` y `*.jks`; verificación: `git status` no los muestra
-- [ ] 2.3 `release.yml`: materializar keystore y `key.properties` desde secretos antes del build, con fallo claro si faltan; verificación: el siguiente release publica el APK firmado con el keystore nuevo
+- [x] 2.3 `release.yml`: materializar keystore y `key.properties` desde secretos antes del build, con fallo claro si faltan; verificación: el siguiente release publica el APK firmado con el keystore nuevo
 
 ## 3. Documentación y cierre
 
