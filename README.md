@@ -34,6 +34,16 @@ No son precios en tiempo real (la fuente se actualiza 2 veces al día).
   https://github.com/izquierdojl/tolochafuel/releases/latest/download/tolochafuel-windows-x64.zip
   Al primer arranque, SmartScreen puede avisar por ser un ejecutable sin firma de código:
   «Más información» → «Ejecutar de todas formas».
+- Linux (x64), tres formatos:
+  - Portable (tar.gz):
+    https://github.com/izquierdojl/tolochafuel/releases/latest/download/tolochafuel-linux-x64.tar.gz
+  - AppImage:
+    https://github.com/izquierdojl/tolochafuel/releases/latest/download/tolochafuel-linux-x64.AppImage
+    Dar permiso de ejecución (`chmod +x`) antes de abrirlo.
+  - Flatpak:
+    https://github.com/izquierdojl/tolochafuel/releases/latest/download/tolochafuel-linux-x64.flatpak
+    Instalar con `flatpak install --user ./tolochafuel-linux-x64.flatpak` y abrir con
+    `flatpak run io.github.izquierdojl.TolochaFuel`.
 
 ## Desarrollo
 
