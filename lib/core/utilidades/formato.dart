@@ -17,6 +17,12 @@ String formatearFechaHora(DateTime fecha) {
       '${dos(local.hour)}:${dos(local.minute)}';
 }
 
+String formatearFecha(DateTime fecha) {
+  final local = fecha.toLocal();
+  String dos(int valor) => valor.toString().padLeft(2, '0');
+  return '${dos(local.day)}/${dos(local.month)}/${local.year}';
+}
+
 String textoFrescura(MetaDatos meta) {
   final partes = <String>[];
   final ultima = meta.ultimaActualizacion;

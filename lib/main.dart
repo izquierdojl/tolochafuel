@@ -5,6 +5,7 @@ import 'app/shell/shell_pantalla.dart';
 import 'app/theme/app_theme.dart';
 import 'features/cercanas/ui/buscar_controller.dart';
 import 'features/cercanas/ui/cercanas_controller.dart';
+import 'features/cercanas/ui/historial_controller.dart';
 import 'features/cercanas/ui/mas_economicas_controller.dart';
 import 'features/configuracion/ui/configuracion_controller.dart';
 import 'features/favoritos/ui/favoritos_controller.dart';
@@ -38,6 +39,7 @@ class TolochaFuelApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => MasEconomicasController(configuracion: configuracion),
         ),
+        ChangeNotifierProvider(create: (_) => HistorialController()),
         ChangeNotifierProvider.value(value: favoritos),
         ChangeNotifierProvider.value(value: configuracion),
       ],

@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:tolochafuel/core/api/api_client.dart';
 import 'package:tolochafuel/core/api/precios_gasolina_api.dart';
+import 'package:tolochafuel/core/models/historico_estacion.dart';
 
 String respuestaCercanas() => '''
 {
@@ -89,6 +90,22 @@ String respuestaBusqueda() => '''
 }
 ''';
 
+String respuestaHistorico() => '''
+{
+  "data": {
+    "station": {"id": 3213, "name": "Ballenoil Segovia"},
+    "days": 5,
+    "series": [
+      {"fuel": "gasoline_95", "unit": "L", "points": [
+        {"date": "2026-10-06", "price": 1.739},
+        {"date": "2026-10-10", "price": 1.719}
+      ]}
+    ]
+  },
+  "meta": {"next_update": "2026-10-10T18:10:00.000Z", "attribution": "Gasolina hoy"}
+}
+''';
+
 PreciosGasolinaApi _apiMocada(String cuerpo, void Function(Uri)? alRecibir) {
   return PreciosGasolinaApi(
     cliente: ApiClient(
@@ -167,6 +184,8 @@ void main() {
       expect(detalle.productos[2].unidad, 'kg');
       expect(detalle.productos.last.etiqueta, 'AdBlue');
       expect(detalle.proximaActualizacion, isNotNull);
+      expect(detalle.meta, isNotNull);
+      expect(detalle.meta!.ultimaActualizacion, isNotNull);
     },
   );
 
@@ -179,5 +198,19 @@ void main() {
     expect(lugares.first.nombre, 'Madrid');
     expect(lugares.first.nivel, 'municipality');
     expect(lugares.last.nivel, 'province');
+  });
+
+  test('historico pide los días y parsea las series', () async {
+    Uri? uriRecibida;
+    final api = _apiMocada(respuestaHistorico(), (uri) => uriRecibida = uri);
+
+    final historico = await api.historico(3213);
+
+    expect(uriRecibida?.path, '/v1/stations/3213/history');
+    expect(uriRecibida?.queryParameters['days'], '90');
+    expect(historico.series, hasLength(1));
+    expect(historico.serie('gasoline_95')!.puntos, hasLength(2));
+    expect(historico.serie('gasoline_95')!.tendencia, Tendencia.baja);
+    expect(historico.proximaActualizacion, isNotNull);
   });
 }

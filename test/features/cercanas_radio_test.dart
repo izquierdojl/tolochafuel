@@ -22,6 +22,9 @@ class UbicacionFalsa extends Ubicacion {
 }
 
 class RepositorioCercanasFalso extends CercanasRepositorio {
+  RepositorioCercanasFalso({this.vaciar = false});
+
+  bool vaciar;
   int llamadas = 0;
   final List<double> radios = [];
 
@@ -34,9 +37,17 @@ class RepositorioCercanasFalso extends CercanasRepositorio {
     llamadas++;
     radios.add(radioKm);
     return ResultadoGasolineras(
-      gasolineras: const [
-        Gasolinera(id: 1, nombre: 'Una', lat: 40.4, lng: -3.7, urlWeb: ''),
-      ],
+      gasolineras: vaciar
+          ? const []
+          : const [
+              Gasolinera(
+                id: 1,
+                nombre: 'Una',
+                lat: 40.4,
+                lng: -3.7,
+                urlWeb: '',
+              ),
+            ],
       meta: const MetaDatos(atribucion: MetaDatos.atribucionPorDefecto),
     );
   }
@@ -111,5 +122,28 @@ void main() {
     await pumpEventQueue();
 
     expect(repositorio.llamadas, 1);
+  });
+
+  test('expone el meta de la respuesta', () async {
+    final (controller, _, _) = await preparar();
+
+    expect(controller.meta, isNotNull);
+  });
+
+  test('conserva el meta cuando el listado llega vacío', () async {
+    final configuracion = ConfiguracionController(
+      repositorio: RepositorioConfigFalso(),
+    );
+    await configuracion.cargar();
+    final controller = CercanasController(
+      configuracion: configuracion,
+      repositorio: RepositorioCercanasFalso(vaciar: true),
+      ubicacion: UbicacionFalsa(_posicion()),
+    );
+
+    await controller.inicializar();
+
+    expect(controller.estado, EstadoCercanas.vacio);
+    expect(controller.meta, isNotNull);
   });
 }

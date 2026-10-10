@@ -62,7 +62,10 @@ ResultadoGasolineras _resultado() => ResultadoGasolineras(
       ],
     ),
   ],
-  meta: MetaDatos(atribucion: MetaDatos.atribucionPorDefecto),
+  meta: MetaDatos(
+    atribucion: MetaDatos.atribucionPorDefecto,
+    ultimaActualizacion: DateTime.utc(2026, 10, 9, 18, 10),
+  ),
 );
 
 Widget _pantalla(BuscarController controller) => MultiProvider(
@@ -98,6 +101,15 @@ void main() {
     expect(controller.errorBusqueda, 'Sin conexión.');
   });
 
+  test('expone el meta del territorio consultado', () async {
+    final repositorio = RepositorioFalso()..territorio = _resultado();
+    final controller = BuscarController(repositorio: repositorio);
+
+    await controller.elegirLugar(_madrid);
+
+    expect(controller.meta, isNotNull);
+  });
+
   testWidgets('busca un municipio y carga sus gasolineras más baratas', (
     tester,
   ) async {
@@ -124,6 +136,7 @@ void main() {
     expect(find.text('Orden por Gasolina 95'), findsOneWidget);
     expect(find.text('Ballenoil Democracia'), findsOneWidget);
     expect(find.text('1,729 €/L'), findsOneWidget);
+    expect(find.textContaining('Datos del'), findsOneWidget);
   });
 
   testWidgets('muestra el aviso cuando no hay coincidencias', (tester) async {

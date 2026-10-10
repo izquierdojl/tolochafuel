@@ -4,6 +4,7 @@ import '../../../core/api/api_client.dart';
 import '../../../core/api/precios_gasolina_api.dart';
 import '../../../core/models/detalle_estacion.dart';
 import '../../../core/models/gasolinera.dart';
+import '../../../core/models/meta_datos.dart';
 import '../data/favorito.dart';
 import '../data/favoritos_repositorio.dart';
 
@@ -20,6 +21,7 @@ class FavoritosController extends ChangeNotifier {
   List<Favorito> favoritos = const [];
   bool cargado = false;
   String? aviso;
+  MetaDatos? meta;
 
   final Map<int, DetalleEstacion> _detalles = {};
   final Set<int> _cargandoDetalle = {};
@@ -58,6 +60,7 @@ class FavoritosController extends ChangeNotifier {
     favoritos = [...favoritos, Favorito.desdeGasolinera(gasolinera)];
     notifyListeners();
     await _persistir();
+    await cargarDetalle(gasolinera.id);
   }
 
   Future<void> quitar(int id) async {
@@ -103,7 +106,9 @@ class FavoritosController extends ChangeNotifier {
     _erroresDetalle.remove(id);
     notifyListeners();
     try {
-      _detalles[id] = await api.detalle(id);
+      final detalle = await api.detalle(id);
+      _detalles[id] = detalle;
+      if (detalle.meta != null) meta = detalle.meta;
     } on ApiException catch (error) {
       _erroresDetalle[id] = error.mensaje;
     } catch (_) {

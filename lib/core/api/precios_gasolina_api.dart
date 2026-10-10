@@ -1,6 +1,7 @@
 import '../models/carburante.dart';
 import '../models/detalle_estacion.dart';
 import '../models/gasolinera.dart';
+import '../models/historico_estacion.dart';
 import '../models/lugar.dart';
 import '../models/meta_datos.dart';
 import '../models/producto_precio.dart';
@@ -145,6 +146,21 @@ class PreciosGasolinaApi {
 
     return DetalleEstacion(
       productos: productos,
+      proximaActualizacion: meta.proximaActualizacion,
+      meta: meta,
+    );
+  }
+
+  Future<HistoricoEstacion> historico(int id, {int days = 90}) async {
+    final cuerpo = await cliente.getJson(
+      '/v1/stations/$id/history',
+      parametros: {'days': days.clamp(1, 90).toString()},
+    );
+    final data = _dataDe(cuerpo);
+    final meta = MetaDatos.fromJson(_metaDe(cuerpo));
+
+    return HistoricoEstacion.fromJson(
+      data,
       proximaActualizacion: meta.proximaActualizacion,
     );
   }
