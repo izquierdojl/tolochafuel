@@ -30,7 +30,10 @@ No son precios en tiempo real (la fuente se actualiza 2 veces al día).
 
 - APK Android:
   https://github.com/izquierdojl/tolochafuel/releases/latest/download/tolochafuel.apk
-- El ZIP portable de Windows se añadirá con el change `infra-…-release-windows`.
+- ZIP portable Windows (x64):
+  https://github.com/izquierdojl/tolochafuel/releases/latest/download/tolochafuel-windows-x64.zip
+  Al primer arranque, SmartScreen puede avisar por ser un ejecutable sin firma de código:
+  «Más información» → «Ejecutar de todas formas».
 
 ## Desarrollo
 
