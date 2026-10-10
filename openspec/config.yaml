@@ -26,8 +26,9 @@ context: |
   ochre, moss; Inter; tema oscuro por defecto + claro), centralizada en lib/app/theme.
 
   Proceso: commits convencionales (feat|fix|docs|infra|refactor|test|chore; BREAKING →
-  major) en español. Ramas: main = producción, dev = integración y destino de los PR.
-  Versionado semver automático por PR a dev según el tipo de commit (version.yml →
+  major) en español. Ramas: main = producción, dev = integración y destino de los PR;
+  fusionar en main dispara el release. Versionado semver automático al fusionar en main
+  según el tipo de commit (version.yml →
   scripts/bump.js → tag vX.Y.Z → release.yml publica APK y ZIP de Windows en GitHub
   Releases).
 
@@ -75,4 +76,4 @@ operations:
     guidance:
       - Verificar con git status que no queda nada sin commitear (código + specs).
       - Commitear en la rama de trabajo del change (dev o feature/<tipo>-<id8>-<slug>).
-      - El versionado lo dispara el workflow version.yml al fusionar en dev; no tocar la versión a mano salvo decisión explícita del usuario.
+      - El versionado lo dispara el workflow version.yml al fusionar en main; no tocar la versión a mano salvo decisión explícita del usuario.

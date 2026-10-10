@@ -99,6 +99,8 @@ decisión explícita del usuario y actualización de este documento.
   Cada change declara `branch: dev` (trabajo directo sobre `dev`) o `branch: feature`
   (rama `feature/<tipo>-<id8>-<slug>` con PR a `dev`). El usuario lo define por change;
   el defecto es `dev` y se configura en `scripts/new_change.sh` (`DEFAULT_BRANCH`).
+  `main` se actualiza con un PR `dev → main`; **fusionar en `main` es lo que dispara el
+  versionado y el release** (§8).
 - Archivar un change = commitear TODO (código + specs) en la rama de trabajo antes del
   merge. Verificar con `git status` que no queda nada sin commitear.
 - **Sincronizar `todowrite` con el plan**: el panel lateral "Todo" solo refleja la
@@ -110,11 +112,11 @@ decisión explícita del usuario y actualización de este documento.
 
 ## 8. Versionado y releases
 
-- Formato semver `X.Y.Z` (+ número de build `+N` en `pubspec.yaml`). **Automático con
-  cada PR** fusionado en `dev`:
+- Formato semver `X.Y.Z` (+ número de build `+N` en `pubspec.yaml`). **Automático al
+  fusionar en `main`**:
   - `feat` o tipo `feature` → **minor**; `fix`/`bug` → **patch**; `BREAKING CHANGE`/`!` → **major**.
   - `infra`/`docs`/`refactor`/`test`/`chore` → **patch** salvo `BREAKING`.
-- Flujo: merge a `dev` → `version.yml` analiza commits desde el último tag →
+- Flujo: merge a `main` → `version.yml` analiza commits desde el último tag →
   `node scripts/bump.js <bump>` (sincroniza la versión en `pubspec.yaml` + `package.json`,
   commit `chore(release): vX.Y.Z`, tag `vX.Y.Z`) → `release.yml` construye y publica el
   APK en GitHub Releases (el ZIP de Windows se añade con su change).
@@ -127,8 +129,8 @@ decisión explícita del usuario y actualización de este documento.
 ## 9. CI/CD y distribución
 
 - `ci.yml`: `check_changes.sh` + `dart format` + `flutter analyze` + `flutter test` +
-  commitlint en PRs.
-- `version.yml` (push a `dev`) → bump + tag + llama a `release.yml`.
+  commitlint en PRs. Corre en PRs a `dev`/`main` y en push a `main` (no en push a `dev`).
+- `version.yml` (push a `main`) → bump + tag + llama a `release.yml`.
 - `release.yml`: job `android` (ubuntu, `flutter build apk --release`) y publicador de
   GitHub Releases. La firma de producción Android queda aplazada: el APK se sirve con la
   firma de debug de Flutter (válido para sideload; Play Store es un change futuro).
