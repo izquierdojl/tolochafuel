@@ -1,5 +1,6 @@
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tolochafuel/features/alias/ui/alias_controller.dart';
 import 'package:tolochafuel/features/configuracion/ui/configuracion_controller.dart';
 import 'package:tolochafuel/features/favoritos/ui/favoritos_controller.dart';
 import 'package:tolochafuel/main.dart';
@@ -10,6 +11,7 @@ void main() {
       TolochaFuelApp(
         favoritos: FavoritosController(),
         configuracion: ConfiguracionController(),
+        alias: AliasController(),
       ),
     );
     await tester.pumpAndSettle();
@@ -23,6 +25,7 @@ void main() {
       TolochaFuelApp(
         favoritos: FavoritosController(),
         configuracion: ConfiguracionController(),
+        alias: AliasController(),
       ),
     );
     await tester.pumpAndSettle();

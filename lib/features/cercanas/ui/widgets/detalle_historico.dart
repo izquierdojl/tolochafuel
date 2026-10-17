@@ -6,6 +6,8 @@ import '../../../../core/models/gasolinera.dart';
 import '../../../../core/models/historico_estacion.dart';
 import '../../../../core/models/producto_precio.dart';
 import '../../../../core/utilidades/formato.dart';
+import '../../../alias/ui/alias_controller.dart';
+import '../../../alias/ui/nombre_mostrado.dart';
 import '../historial_controller.dart';
 
 class DetalleHistorico extends StatelessWidget {
@@ -22,6 +24,8 @@ class DetalleHistorico extends StatelessWidget {
   Widget build(BuildContext context) {
     final tema = Theme.of(context);
     final controller = context.watch<HistorialController>();
+    final alias = context.watch<AliasController>().aliasDe(gasolinera.id);
+    final mostrado = nombreMostrado(gasolinera, alias);
     final historico = controller.historico(gasolinera.id);
     final cargando = controller.cargando(gasolinera.id);
     final error = controller.error(gasolinera.id);
@@ -33,7 +37,7 @@ class DetalleHistorico extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(gasolinera.nombre, style: tema.textTheme.titleMedium),
+            Text(mostrado.titulo, style: tema.textTheme.titleMedium),
             const SizedBox(height: 2),
             Text(
               'Últimos cambios de precio (90 días)',

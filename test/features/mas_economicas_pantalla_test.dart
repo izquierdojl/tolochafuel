@@ -14,6 +14,7 @@ import 'package:tolochafuel/core/models/gasolinera.dart';
 import 'package:tolochafuel/core/models/meta_datos.dart';
 import 'package:tolochafuel/core/models/producto_precio.dart';
 import 'package:tolochafuel/core/services/ubicacion.dart';
+import 'package:tolochafuel/features/alias/ui/alias_controller.dart';
 import 'package:tolochafuel/features/cercanas/data/cercanas_repositorio.dart';
 import 'package:tolochafuel/features/cercanas/ui/cercanas_controller.dart';
 import 'package:tolochafuel/features/cercanas/ui/mas_economicas_controller.dart';
@@ -130,6 +131,7 @@ Widget _pantalla(
       value: shell ?? ShellController(SeccionApp.cercanas),
     ),
     ChangeNotifierProvider(create: (_) => FavoritosController()),
+    ChangeNotifierProvider(create: (_) => AliasController()),
   ],
   child: const MaterialApp(home: Scaffold(body: MasEconomicasPantalla())),
 );
@@ -534,6 +536,7 @@ void main() {
             value: ShellController(SeccionApp.masEconomicas),
           ),
           ChangeNotifierProvider(create: (_) => FavoritosController()),
+          ChangeNotifierProvider(create: (_) => AliasController()),
         ],
         child: MaterialApp(
           theme: tema,
