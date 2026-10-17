@@ -47,33 +47,52 @@ context: |
 
 rules:
   proposal:
-    - Indicar el tipo del change (feature|bug|docs|infra|refactor|test|chore) en el título y en meta.yaml.
+    - Indicar el tipo del change (feature|bug|docs|infra|refactor|test|chore) en
+      el título y en meta.yaml.
     - Incluir sección "Fuera de alcance" con lo que explícitamente no se hará.
     - Mantener el alcance a una capacidad; si crece, proponer un change nuevo.
-    - Indicar las plataformas afectadas (Android | Windows | todas) cuando el comportamiento difiera entre ellas.
+    - Indicar las plataformas afectadas (Android | Windows | todas) cuando el
+      comportamiento difiera entre ellas.
   specs:
-    - Cada requisito usa el formato SHALL con cláusulas Given/When/Then cuando aplique.
-    - "No inventar endpoints ni campos de la API: citar api.preciosgasolina.es y respetar sus límites y licencia."
-    - Todo requisito que muestre precios debe incluir la atribución a Gasolina hoy y al Ministerio (CC BY 4.0).
-    - "Definir el comportamiento en estados de carga, error y vacío; y el fallback cuando la ubicación no esté disponible (escritorio o permiso denegado)."
+    - Cada requisito usa el formato SHALL con cláusulas Given/When/Then cuando
+      aplique.
+    - "No inventar endpoints ni campos de la API: citar api.preciosgasolina.es y
+      respetar sus límites y licencia."
+    - Todo requisito que muestre precios debe incluir la atribución a Gasolina
+      hoy y al Ministerio (CC BY 4.0).
+    - "Definir el comportamiento en estados de carga, error y vacío; y el
+      fallback cuando la ubicación no esté disponible (escritorio o permiso
+      denegado)."
   design:
-    - "Respetar la estructura: lib/app (tema, rutas, arranque) · lib/core (api, modelos, utilidades) · lib/features/<feature> (data + ui)."
-    - "Sin lógica de negocio en widgets: las pantallas llaman a repositorios/servicios de su feature."
-    - Colores y tipografía solo desde el tema (lib/app/theme); nunca literales en widgets.
-    - Cachear las respuestas de la API en memoria y respetar la frescura de los datos (last_updated, actualización 2 veces al día).
-    - "Manejar los errores de la API (RFC 9457: application/problem+json) con mensajes en español y acción de reintento."
+    - "Respetar la estructura: lib/app (tema, rutas, arranque) · lib/core (api,
+      modelos, utilidades) · lib/features/<feature> (data + ui)."
+    - "Sin lógica de negocio en widgets: las pantallas llaman a
+      repositorios/servicios de su feature."
+    - Colores y tipografía solo desde el tema (lib/app/theme); nunca literales
+      en widgets.
+    - Cachear las respuestas de la API en memoria y respetar la frescura de los
+      datos (last_updated, actualización 2 veces al día).
+    - "Manejar los errores de la API (RFC 9457: application/problem+json) con
+      mensajes en español y acción de reintento."
   tasks:
     - "Cada tarea termina con flutter analyze + flutter test en verde."
-    - "Incluir tarea de widget test para los estados clave (carga, error, vacío, con datos)."
+    - "Incluir tarea de widget test para los estados clave (carga, error, vacío,
+      con datos)."
     - "Tareas de máximo 2 horas de trabajo; si son mayores, dividirlas."
 
 operations:
   apply:
     guidance:
-      - Seguir el orden de tasks y marcar completadas solo cuando el código y los tests existen.
+      - Seguir el orden de tasks y marcar completadas solo cuando el código y
+        los tests existen.
       - No empezar el cambio siguiente sin archivar el actual.
   archive:
     guidance:
-      - Verificar con git status que no queda nada sin commitear (código + specs).
-      - Commitear en la rama de trabajo del change (dev o feature/<tipo>-<id8>-<slug>).
-      - El versionado lo dispara el workflow version.yml al fusionar en main; no tocar la versión a mano salvo decisión explícita del usuario.
+      - Verificar con git status que no queda nada sin commitear (código +
+        specs).
+      - Commitear en la rama de trabajo del change (dev o
+        feature/<tipo>-<id8>-<slug>).
+      - El versionado lo dispara el workflow version.yml al fusionar en main; no
+        tocar la versión a mano salvo decisión explícita del usuario.
+githubCopilot:
+  cloudAgent: true
