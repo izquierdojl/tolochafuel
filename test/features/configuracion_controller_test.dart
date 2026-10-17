@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tolochafuel/app/shell/seccion_app.dart';
+import 'package:tolochafuel/core/models/criterio_economicas.dart';
 import 'package:tolochafuel/features/configuracion/data/configuracion_repositorio.dart';
 import 'package:tolochafuel/features/configuracion/ui/configuracion_controller.dart';
 
@@ -68,6 +69,10 @@ void main() {
     await controller.cambiarPantallaInicial(SeccionApp.masEconomicas);
     expect(controller.pantallaInicial, SeccionApp.masEconomicas);
     expect(repositorio.guardados!.pantallaInicial, SeccionApp.masEconomicas);
+
+    await controller.cambiarCriterioEconomicas(CriterioEconomicas.media);
+    expect(controller.ajustes.criterioEconomicas, CriterioEconomicas.media);
+    expect(repositorio.guardados!.criterioEconomicas, CriterioEconomicas.media);
   });
 
   test('el radio se limita al rango permitido por la API', () async {

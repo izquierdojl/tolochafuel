@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tolochafuel/core/api/api_client.dart';
 import 'package:tolochafuel/core/api/precios_gasolina_api.dart';
+import 'package:tolochafuel/core/models/carburante.dart';
+import 'package:tolochafuel/core/models/criterio_economicas.dart';
 import 'package:tolochafuel/core/models/detalle_estacion.dart';
 import 'package:tolochafuel/core/models/gasolinera.dart';
 import 'package:tolochafuel/core/models/lugar.dart';
@@ -26,8 +28,10 @@ class ApiFalsa extends PreciosGasolinaApi {
   int llamadasCercanas = 0;
   int llamadasMasBaratas = 0;
   int llamadasMasBaratasCerca = 0;
+  Carburante ultimoFuel = Carburante.gasolina95;
   int llamadasFichas = 0;
   List<int> idsConFallo = const [];
+  Map<int, double> preciosPorId = const {};
 
   @override
   Future<ResultadoGasolineras> cercanas({
@@ -63,8 +67,10 @@ class ApiFalsa extends PreciosGasolinaApi {
     required double lng,
     double radioKm = 25,
     int limite = PreciosGasolinaApi.limiteMaximo,
+    Carburante fuel = Carburante.gasolina95,
   }) async {
     llamadasMasBaratasCerca++;
+    ultimoFuel = fuel;
     return ResultadoGasolineras(
       gasolineras: [_estacion(1, distancia: 3), _estacion(2, distancia: 5)],
       meta: _meta(),
@@ -78,12 +84,12 @@ class ApiFalsa extends PreciosGasolinaApi {
       throw const ApiException(mensaje: 'Ficha no disponible');
     }
     return DetalleEstacion(
-      productos: const [
+      productos: [
         ProductoPrecio(
           idApi: 'gasoline_95',
           etiqueta: 'Gasolina 95 E5',
           unidad: 'L',
-          precio: 1.7,
+          precio: preciosPorId[id] ?? 1.7,
         ),
       ],
       proximaActualizacion: DateTime.now().add(const Duration(hours: 6)),
@@ -166,5 +172,62 @@ void main() {
 
     await repositorio.masEconomicas(lat: 40.417, lng: -3.704, radioKm: 40);
     expect(api.llamadasMasBaratasCerca, 2);
+  });
+
+  test(
+    'masEconomicas pide el carburante del criterio y cachea por criterio',
+    () async {
+      final api = ApiFalsa();
+      final repositorio = CercanasRepositorio(api: api);
+
+      await repositorio.masEconomicas(
+        lat: 40.417,
+        lng: -3.704,
+        radioKm: 25,
+        criterio: CriterioEconomicas.gasoleoA,
+      );
+      expect(api.ultimoFuel, Carburante.gasoleoA);
+      expect(api.llamadasMasBaratasCerca, 1);
+
+      await repositorio.masEconomicas(
+        lat: 40.417,
+        lng: -3.704,
+        radioKm: 25,
+        criterio: CriterioEconomicas.gasoleoA,
+      );
+      expect(api.llamadasMasBaratasCerca, 1);
+
+      await repositorio.masEconomicas(
+        lat: 40.417,
+        lng: -3.704,
+        radioKm: 25,
+        criterio: CriterioEconomicas.glp,
+      );
+      expect(api.ultimoFuel, Carburante.glp);
+      expect(api.llamadasMasBaratasCerca, 2);
+    },
+  );
+
+  test('masEconomicas con media ordena por la media de la ficha', () async {
+    final api = ApiFalsa()..preciosPorId = {1: 1.8, 2: 1.6};
+    final repositorio = CercanasRepositorio(api: api);
+
+    final resultado = await repositorio.masEconomicas(
+      lat: 40.417,
+      lng: -3.704,
+      radioKm: 25,
+      criterio: CriterioEconomicas.media,
+    );
+
+    expect(resultado.gasolineras.map((estacion) => estacion.id), [2, 1]);
+    expect(api.llamadasCercanas, 1);
+
+    await repositorio.masEconomicas(
+      lat: 40.417,
+      lng: -3.704,
+      radioKm: 25,
+      criterio: CriterioEconomicas.media,
+    );
+    expect(api.llamadasCercanas, 1);
   });
 }

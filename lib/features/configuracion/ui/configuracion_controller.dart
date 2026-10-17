@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../app/shell/seccion_app.dart';
+import '../../../core/models/criterio_economicas.dart';
 import '../data/configuracion_repositorio.dart';
 
 class ConfiguracionController extends ChangeNotifier {
@@ -45,6 +46,9 @@ class ConfiguracionController extends ChangeNotifier {
     if (seccion == SeccionApp.configuracion) return Future.value();
     return _aplicar(ajustes.copyWith(pantallaInicial: seccion));
   }
+
+  Future<void> cambiarCriterioEconomicas(CriterioEconomicas criterio) =>
+      _aplicar(ajustes.copyWith(criterioEconomicas: criterio));
 
   Future<void> _aplicar(Ajustes nuevos) async {
     ajustes = nuevos;

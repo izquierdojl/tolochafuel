@@ -1,8 +1,10 @@
 import 'dart:math';
 
 import '../../../core/api/precios_gasolina_api.dart';
+import '../../../core/models/criterio_economicas.dart';
 import '../../../core/models/detalle_estacion.dart';
 import '../../../core/models/lugar.dart';
+import 'orden_economicas.dart';
 
 class CercanasRepositorio {
   CercanasRepositorio({PreciosGasolinaApi? api})
@@ -49,15 +51,36 @@ class CercanasRepositorio {
     required double lat,
     required double lng,
     required double radioKm,
+    CriterioEconomicas criterio = CriterioEconomicas.gasolina95,
   }) {
-    final clave =
-        'baratas:${lat.toStringAsFixed(3)},${lng.toStringAsFixed(3)},$radioKm';
-    return _conCacheListado(clave, () async {
+    final centro =
+        '${lat.toStringAsFixed(3)},${lng.toStringAsFixed(3)},$radioKm';
+    final carburante = criterio.carburante;
+    if (carburante == null) {
+      return _conCacheListado('media:$centro', () async {
+        final resultado = await api.cercanas(
+          lat: lat,
+          lng: lng,
+          radioKm: radioKm,
+          limite: PreciosGasolinaApi.limiteMaximo,
+        );
+        final conFichas = await _conFichas(resultado);
+        return ResultadoGasolineras(
+          gasolineras: ordenarPorMedia(conFichas.gasolineras)
+              .take(limiteListado)
+              .toList(),
+          meta: conFichas.meta,
+          areaNombre: conFichas.areaNombre,
+        );
+      });
+    }
+    return _conCacheListado('baratas:${criterio.clave}:$centro', () async {
       final resultado = await api.masBaratasCerca(
         lat: lat,
         lng: lng,
         radioKm: radioKm,
         limite: limiteListado,
+        fuel: carburante,
       );
       return _conFichas(resultado);
     });

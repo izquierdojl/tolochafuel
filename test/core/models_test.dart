@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tolochafuel/core/models/carburante.dart';
+import 'package:tolochafuel/core/models/criterio_economicas.dart';
 import 'package:tolochafuel/core/models/gasolinera.dart';
 import 'package:tolochafuel/core/models/meta_datos.dart';
 import 'package:tolochafuel/core/models/producto_precio.dart';
@@ -143,6 +145,49 @@ void main() {
       expect(gasolinera.distanciaKm, 1.2);
       expect(gasolinera.productos, hasLength(1));
       expect(gasolinera.productos.first.precio, 1.729);
+    });
+  });
+
+  group('CriterioEconomicas', () {
+    test('ofrece los seis carburantes de la API y la media', () {
+      expect(CriterioEconomicas.values, hasLength(7));
+      expect(
+        CriterioEconomicas.values.map((criterio) => criterio.clave),
+        containsAll([
+          'gasoline_95',
+          'gasoline_98',
+          'diesel',
+          'diesel_premium',
+          'lpg',
+          'cng',
+          'media',
+        ]),
+      );
+      expect(CriterioEconomicas.gasoleoA.etiqueta, 'Gasóleo A');
+      expect(CriterioEconomicas.media.etiqueta, 'Media de carburantes');
+      expect(CriterioEconomicas.media.esMedia, isTrue);
+      expect(CriterioEconomicas.glp.esMedia, isFalse);
+    });
+
+    test('la clave identifica el carburante y viaja en ambos sentidos', () {
+      for (final criterio in CriterioEconomicas.values) {
+        expect(CriterioEconomicas.desdeClave(criterio.clave), criterio);
+      }
+      expect(
+        CriterioEconomicas.desdeClave('diesel').carburante,
+        Carburante.gasoleoA,
+      );
+    });
+
+    test('la clave desconocida o nula cae a Gasolina 95', () {
+      expect(
+        CriterioEconomicas.desdeClave('queroseno'),
+        CriterioEconomicas.gasolina95,
+      );
+      expect(
+        CriterioEconomicas.desdeClave(null),
+        CriterioEconomicas.gasolina95,
+      );
     });
   });
 }

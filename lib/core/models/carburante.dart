@@ -1,6 +1,10 @@
 enum Carburante {
   gasolina95('gasoline_95', 'Gasolina 95'),
-  gasoleoA('diesel', 'Gasóleo A');
+  gasolina98('gasoline_98', 'Gasolina 98'),
+  gasoleoA('diesel', 'Gasóleo A'),
+  gasoleoPremium('diesel_premium', 'Gasóleo premium'),
+  glp('lpg', 'GLP'),
+  gnc('cng', 'GNC');
 
   const Carburante(this.idApi, this.etiqueta);
 
