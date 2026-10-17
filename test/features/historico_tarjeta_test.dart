@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -96,6 +97,27 @@ HistoricoEstacion _historico() => HistoricoEstacion(
   ],
 );
 
+HistoricoEstacion _historicoLargo() => HistoricoEstacion(
+  series: [
+    SerieCarburante(
+      idApi: 'gasoline_95',
+      puntos: [
+        for (var i = 0; i < 62; i++)
+          PuntoPrecio(
+            fecha: DateTime(2026, 8, 17 + i),
+            precio: 1.9 - 0.002 * i,
+          ),
+      ],
+    ),
+  ],
+);
+
+Finder _bloqueMedias() => find.byWidgetPredicate(
+  (widget) =>
+      widget is Semantics &&
+      widget.properties.label == 'Ver gráfico de precios',
+);
+
 Widget _app(HistorialController historial, {AliasController? alias}) =>
     MultiProvider(
       providers: [
@@ -156,9 +178,186 @@ void main() {
     expect(find.text('Gasolina 95 E5'), findsWidgets);
     expect(find.text('10/10/2026'), findsWidgets);
     expect(find.text('09/10/2026'), findsNothing);
-    expect(find.text('Baja 0,010 €/L desde el 10/10/2026'), findsOneWidget);
-    expect(find.text('Sube 0,010 €/L desde el 10/10/2026'), findsOneWidget);
     expect(find.text('Sin cambios en los últimos 90 días'), findsOneWidget);
+    expect(find.text('Ver gráfico de precios'), findsNWidgets(3));
+  });
+
+  testWidgets('el modal marca cada cambio con su flecha de dirección', (
+    tester,
+  ) async {
+    final historial = HistorialController(
+      api: ApiHistoricoFalsa(resultado: _historico()),
+    );
+
+    await tester.pumpWidget(_app(historial));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('1,719 €/L'));
+    await tester.pumpAndSettle();
+
+    final colores = AppTheme.oscuro.extension<ColoresTendencia>()!;
+    final modal = find.byType(DetalleHistorico);
+    final abajo = tester.widget<Icon>(
+      find.descendant(of: modal, matching: find.byIcon(Icons.arrow_downward)),
+    );
+    final arriba = tester.widget<Icon>(
+      find.descendant(of: modal, matching: find.byIcon(Icons.arrow_upward)),
+    );
+    expect(abajo.color, colores.bajada);
+    expect(arriba.color, colores.subida);
+  });
+
+  testWidgets(
+    'las medias comparan con la ventana anterior y el gráfico se pliega',
+    (tester) async {
+      final historial = HistorialController(
+        api: ApiHistoricoFalsa(resultado: _historicoLargo()),
+      );
+
+      await tester.pumpWidget(_app(historial));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('1,719 €/L'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Última semana'), findsOneWidget);
+      expect(find.text('Último mes'), findsOneWidget);
+
+      final bloque = find.ancestor(
+        of: find.text('Última semana'),
+        matching: _bloqueMedias(),
+      );
+      expect(bloque, findsOneWidget);
+      expect(
+        find.descendant(of: bloque, matching: find.text('1,784 €/L')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: bloque, matching: find.text('1,807 €/L')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: bloque,
+          matching: find.byIcon(Icons.arrow_downward),
+        ),
+        findsNWidgets(2),
+      );
+
+      expect(find.byType(LineChart), findsNothing);
+      await tester.tap(find.text('Última semana'));
+      await tester.pumpAndSettle();
+      expect(find.byType(LineChart), findsOneWidget);
+      expect(find.byIcon(Icons.expand_less), findsOneWidget);
+
+      await tester.tap(find.text('Última semana'));
+      await tester.pumpAndSettle();
+      expect(find.byType(LineChart), findsNothing);
+    },
+  );
+
+  testWidgets('sin ventana anterior la media aparece sin flecha', (
+    tester,
+  ) async {
+    final historial = HistorialController(
+      api: ApiHistoricoFalsa(
+        resultado: HistoricoEstacion(
+          series: [
+            SerieCarburante(
+              idApi: 'gasoline_95',
+              puntos: [
+                for (var i = 0; i < 10; i++)
+                  PuntoPrecio(fecha: DateTime(2026, 10, 1 + i), precio: 1.700),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(_app(historial));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('1,719 €/L'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Última semana'), findsOneWidget);
+    final bloque = find.ancestor(
+      of: find.text('Última semana'),
+      matching: _bloqueMedias(),
+    );
+    expect(find.text('1,700 €/L'), findsOneWidget);
+    expect(find.text('Último mes'), findsNothing);
+    expect(
+      find.descendant(of: bloque, matching: find.byIcon(Icons.arrow_downward)),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: bloque, matching: find.byIcon(Icons.arrow_upward)),
+      findsNothing,
+    );
+  });
+
+  testWidgets('una serie plana muestra medias iguales', (tester) async {
+    final historial = HistorialController(
+      api: ApiHistoricoFalsa(
+        resultado: HistoricoEstacion(
+          series: [
+            SerieCarburante(
+              idApi: 'gasoline_95',
+              puntos: [
+                for (var i = 0; i < 60; i++)
+                  PuntoPrecio(fecha: DateTime(2026, 8, 19 + i), precio: 1.729),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(_app(historial));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('1,719 €/L'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Última semana'), findsOneWidget);
+    expect(find.text('Último mes'), findsOneWidget);
+    final bloque = find.ancestor(
+      of: find.text('Última semana'),
+      matching: _bloqueMedias(),
+    );
+    expect(
+      find.descendant(of: bloque, matching: find.text('=')),
+      findsNWidgets(2),
+    );
+  });
+
+  testWidgets('con un solo registro no se ofrece el gráfico', (tester) async {
+    final historial = HistorialController(
+      api: ApiHistoricoFalsa(
+        resultado: HistoricoEstacion(
+          series: [
+            SerieCarburante(
+              idApi: 'gasoline_95',
+              puntos: [
+                PuntoPrecio(fecha: DateTime(2026, 10, 10), precio: 1.719),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(_app(historial));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('1,719 €/L'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sin cambios en los últimos 90 días'), findsOneWidget);
+    expect(find.text('Ver gráfico de precios'), findsNothing);
+    expect(find.byIcon(Icons.expand_more), findsNothing);
   });
 
   testWidgets('muestra la flecha aunque los últimos días estén planos', (

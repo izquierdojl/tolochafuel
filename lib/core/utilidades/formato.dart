@@ -23,6 +23,12 @@ String formatearFecha(DateTime fecha) {
   return '${dos(local.day)}/${dos(local.month)}/${local.year}';
 }
 
+String formatearFechaCorta(DateTime fecha) {
+  final local = fecha.toLocal();
+  String dos(int valor) => valor.toString().padLeft(2, '0');
+  return '${dos(local.day)}/${dos(local.month)}';
+}
+
 String textoFrescura(MetaDatos meta) {
   final partes = <String>[];
   final ultima = meta.ultimaActualizacion;

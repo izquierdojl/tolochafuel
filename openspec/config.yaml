@@ -11,7 +11,8 @@ context: |
 
   Stack: Flutter (canal stable, versión fijada en CI) + Dart estricto (flutter_lints) ·
   http para la API · geolocator para ubicación · provider para estado · url_launcher
-  para navegación externa · shared_preferences para favoritos. Plataformas:
+  para navegación externa · shared_preferences para favoritos · fl_chart para el
+  gráfico del histórico. Plataformas:
   Android (principal), Windows (secundaria), web e iOS aplazados. Sin Docker ni
   servidor: los datos se consumen directamente de la API pública.
 
