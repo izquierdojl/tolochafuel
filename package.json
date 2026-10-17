@@ -1,6 +1,6 @@
 {
   "name": "tolochafuel",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": true,
   "description": "Precios de carburantes de las gasolineras cercanas (Flutter)",
   "engines": {
