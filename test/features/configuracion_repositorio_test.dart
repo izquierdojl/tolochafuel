@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tolochafuel/app/shell/seccion_app.dart';
+import 'package:tolochafuel/core/models/criterio_economicas.dart';
 import 'package:tolochafuel/features/configuracion/data/configuracion_repositorio.dart';
 
 void main() {
@@ -16,6 +17,7 @@ void main() {
     expect(ajustes.temaOscuro, isTrue);
     expect(ajustes.radioKm, Ajustes.radioPorDefectoKm);
     expect(ajustes.pantallaInicial, SeccionApp.cercanas);
+    expect(ajustes.criterioEconomicas, CriterioEconomicas.gasolina95);
   });
 
   test('guarda y vuelve a cargar cada preferencia', () async {
@@ -25,6 +27,7 @@ void main() {
         temaOscuro: false,
         radioKm: 40,
         pantallaInicial: SeccionApp.buscar,
+        criterioEconomicas: CriterioEconomicas.media,
       ),
     );
 
@@ -33,6 +36,7 @@ void main() {
     expect(ajustes.temaOscuro, isFalse);
     expect(ajustes.radioKm, 40);
     expect(ajustes.pantallaInicial, SeccionApp.buscar);
+    expect(ajustes.criterioEconomicas, CriterioEconomicas.media);
   });
 
   test(
@@ -42,6 +46,7 @@ void main() {
         ConfiguracionRepositorio.claveRadio: 200.0,
         ConfiguracionRepositorio.clavePantalla: 'configuracion',
         ConfiguracionRepositorio.claveTema: 'no es bool',
+        ConfiguracionRepositorio.claveCriterio: 'queroseno',
       });
 
       final ajustes = await ConfiguracionRepositorio().cargar();
@@ -49,6 +54,7 @@ void main() {
       expect(ajustes.radioKm, Ajustes.radioPorDefectoKm);
       expect(ajustes.pantallaInicial, SeccionApp.cercanas);
       expect(ajustes.temaOscuro, isTrue);
+      expect(ajustes.criterioEconomicas, CriterioEconomicas.gasolina95);
     },
   );
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/models/criterio_economicas.dart';
 import '../../../core/models/gasolinera.dart';
 import '../../../core/models/meta_datos.dart';
 import '../../../core/services/ubicacion.dart';
@@ -14,6 +15,7 @@ class MasEconomicasController extends ChangeNotifier {
     Ubicacion? ubicacion,
     this.configuracion,
     this.radioKmInicial = 25,
+    this.criterioInicial = CriterioEconomicas.gasolina95,
   }) : repositorio = repositorio ?? CercanasRepositorio(),
        ubicacion = ubicacion ?? const Ubicacion() {
     configuracion?.addListener(_alCambiarConfiguracion);
@@ -23,6 +25,7 @@ class MasEconomicasController extends ChangeNotifier {
   final Ubicacion ubicacion;
   final ConfiguracionController? configuracion;
   final double radioKmInicial;
+  final CriterioEconomicas criterioInicial;
 
   EstadoCercanas estado = EstadoCercanas.inicial;
   List<Gasolinera> gasolineras = const [];
@@ -32,8 +35,15 @@ class MasEconomicasController extends ChangeNotifier {
 
   (double, double)? _centro;
   double? _radioUsado;
+  CriterioEconomicas? _criterioUsado;
+  CriterioEconomicas? _criterioLocal;
 
   double get radioKm => configuracion?.radioKm ?? radioKmInicial;
+
+  CriterioEconomicas get criterio =>
+      configuracion?.ajustes.criterioEconomicas ??
+      _criterioLocal ??
+      criterioInicial;
 
   Future<void> inicializar() async {
     avisoUbicacion = null;
@@ -76,17 +86,34 @@ class MasEconomicasController extends ChangeNotifier {
     await _cargar();
   }
 
+  Future<void> cambiarCriterio(CriterioEconomicas criterio) async {
+    _criterioLocal = criterio;
+    final config = configuracion;
+    if (config == null) {
+      if (_centro == null) {
+        notifyListeners();
+        return;
+      }
+      await _cargar();
+      return;
+    }
+    await config.cambiarCriterioEconomicas(criterio);
+  }
+
   Future<void> _cargar() async {
     _establecer(EstadoCercanas.cargando);
     try {
       final radio = radioKm;
+      final criterio = this.criterio;
       final centro = _centro!;
       final resultado = await repositorio.masEconomicas(
         lat: centro.$1,
         lng: centro.$2,
         radioKm: radio,
+        criterio: criterio,
       );
       _radioUsado = radio;
+      _criterioUsado = criterio;
       gasolineras = resultado.gasolineras;
       meta = resultado.meta;
       _establecer(
@@ -107,7 +134,8 @@ class MasEconomicasController extends ChangeNotifier {
   }
 
   void _alCambiarConfiguracion() {
-    if (_centro == null || configuracion?.radioKm == _radioUsado) return;
+    if (_centro == null) return;
+    if (radioKm == _radioUsado && criterio == _criterioUsado) return;
     _cargar();
   }
 

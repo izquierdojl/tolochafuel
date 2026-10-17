@@ -116,6 +116,7 @@ class PreciosGasolinaApi {
     required double lng,
     double radioKm = 25,
     int limite = limiteMaximo,
+    Carburante fuel = Carburante.gasolina95,
   }) async {
     final cuerpo = await cliente.getJson(
       '/v1/stations/cheapest',
@@ -123,7 +124,7 @@ class PreciosGasolinaApi {
         'lat': lat.toString(),
         'lng': lng.toString(),
         'radius_km': radioKm.clamp(0.1, radioMaximoKm).toString(),
-        'fuel': Carburante.gasolina95.idApi,
+        'fuel': fuel.idApi,
         'limit': limite.clamp(1, limiteMaximo).toString(),
       },
     );

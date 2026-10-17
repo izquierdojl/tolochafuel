@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/models/criterio_economicas.dart';
 import 'cercanas_controller.dart';
 import 'mas_economicas_controller.dart';
 import 'widgets/aviso_sin_ubicacion.dart';
@@ -53,15 +54,19 @@ class _Cuerpo extends StatelessWidget {
       case EstadoCercanas.vacio:
         final aviso = controller.avisoUbicacion;
         if (aviso != null) return AvisoSinUbicacion(mensaje: aviso);
+        final criterio = controller.criterio;
+        final detalle = criterio.esMedia
+            ? 'precios para calcular la media'
+            : 'estaciones con ${criterio.etiqueta}';
         return Column(
           children: [
             Expanded(
               child: VacioCercanas(
                 sugerencia:
-                    'No hay estaciones en el radio de '
+                    'No hay $detalle en el radio de '
                     '${controller.radioKm.toStringAsFixed(0)} km. '
-                    'Prueba a ampliar el radio en Configuración o cambia de '
-                    'ubicación.',
+                    'Prueba con otro criterio, amplía el radio en '
+                    'Configuración o cambia de ubicación.',
               ),
             ),
             PieFrescura(meta: controller.meta),
@@ -82,11 +87,37 @@ class _Cuerpo extends StatelessWidget {
                     '${controller.radioKm.toStringAsFixed(0)} km',
                     style: tema.textTheme.titleSmall,
                   ),
-                  Text(
-                    'Orden por Gasolina 95',
-                    style: tema.textTheme.bodySmall?.copyWith(
-                      color: tema.colorScheme.onSurfaceVariant,
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        'Ordenar por',
+                        style: tema.textTheme.bodySmall?.copyWith(
+                          color: tema.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: DropdownButton<CriterioEconomicas>(
+                          value: controller.criterio,
+                          isExpanded: true,
+                          onChanged: (criterio) {
+                            if (criterio != null) {
+                              controller.cambiarCriterio(criterio);
+                            }
+                          },
+                          items: [
+                            for (final criterio in CriterioEconomicas.values)
+                              DropdownMenuItem(
+                                value: criterio,
+                                child: Text(
+                                  criterio.etiqueta,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

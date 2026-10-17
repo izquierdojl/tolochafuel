@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:tolochafuel/core/api/api_client.dart';
 import 'package:tolochafuel/core/api/precios_gasolina_api.dart';
+import 'package:tolochafuel/core/models/carburante.dart';
 import 'package:tolochafuel/core/models/historico_estacion.dart';
 
 String respuestaCercanas() => '''
@@ -167,6 +168,31 @@ void main() {
     expect(resultado.areaNombre, 'Madrid');
     expect(resultado.gasolineras, hasLength(1));
     expect(resultado.gasolineras.first.precio, 1.749);
+  });
+
+  test('masBaratasCerca pide Gasolina 95 por defecto', () async {
+    Uri? uriRecibida;
+    final api = _apiMocada(respuestaMasBaratas(), (uri) => uriRecibida = uri);
+
+    await api.masBaratasCerca(lat: 40.417, lng: -3.704, radioKm: 25);
+
+    expect(uriRecibida?.path, '/v1/stations/cheapest');
+    expect(uriRecibida?.queryParameters['fuel'], 'gasoline_95');
+    expect(uriRecibida?.queryParameters['radius_km'], '25.0');
+  });
+
+  test('masBaratasCerca envía el carburante elegido', () async {
+    Uri? uriRecibida;
+    final api = _apiMocada(respuestaMasBaratas(), (uri) => uriRecibida = uri);
+
+    await api.masBaratasCerca(
+      lat: 40.417,
+      lng: -3.704,
+      radioKm: 25,
+      fuel: Carburante.gasoleoA,
+    );
+
+    expect(uriRecibida?.queryParameters['fuel'], 'diesel');
   });
 
   test(
