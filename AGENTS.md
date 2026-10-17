@@ -29,7 +29,7 @@ change propuesto.
 | Navegación externa | `url_launcher`: intents `geo:`/Google Maps en Android; Maps web en escritorio. |
 | Persistencia local | `shared_preferences` (favoritos y ajustes). |
 | Calidad | `flutter analyze` + `flutter test` + `dart format`; widget tests de los estados clave. |
-| Entorno | WSL2 (Ubuntu). Código en `~/dev`, nunca en `/mnt/c`. Flutter, JDK 17 y Android SDK en rutas de usuario. |
+| Entorno | Linux (Debian Stable, escritorio KDE Plasma; la distribución puede cambiar en el futuro). Código en `~/soft/tolochafuel`. Flutter, JDK 21 y Android SDK en rutas de usuario. |
 | Distribución | GitHub Releases: **APK** (Android), **ZIP portable** (Windows) y **tar.gz/AppImage/Flatpak** (Linux); iOS, web/PWA y Play Store aplazados; **sin Docker**. |
 
 Stack cerrado: **no se cambia de framework, librerías base ni gestor de paquetes** sin
@@ -147,13 +147,14 @@ decisión explícita del usuario y actualización de este documento.
 
 ## 10. Entorno de desarrollo
 
-- **WSL2 (Ubuntu)**. Código en `~/dev/tolochafuel` (ext4), nunca en `/mnt/c`.
-- SDKs en rutas de usuario: Flutter (`~/flutter`), JDK 17 y Android SDK (`~/Android/Sdk`).
+- **Linux (Debian Stable) con KDE Plasma**; la distribución puede cambiar en el futuro.
+  Código en `~/soft/tolochafuel`.
+- SDKs en rutas de usuario: Flutter (`~/flutter`), JDK 21 y Android SDK (`~/Android/Sdk`).
 - Comandos habituales: `flutter pub get`, `flutter run -d <dispositivo>`,
   `flutter analyze`, `flutter test`, `dart format .`, `bash scripts/check_changes.sh`,
   `npm run check:changes` y `npm run release:patch|minor|major` (manual y excepcional).
-- Emulador Android en Windows y `adb` desde WSL (`ADB_SERVER_SOCKET`); dispositivos USB
-  con `usbipd-win`.
+- Emulador Android local (AVD `Medium_Phone_API_37.0` en `~/Android/Sdk/emulator`, con
+  KVM) y `adb` en `~/Android/Sdk/platform-tools`; dispositivos físicos por USB con `adb`.
 
 ## 11. Advisories (acuerdos que no se renegocian)
 
