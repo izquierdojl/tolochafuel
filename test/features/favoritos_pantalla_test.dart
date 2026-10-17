@@ -10,6 +10,7 @@ import 'package:tolochafuel/core/models/gasolinera.dart';
 import 'package:tolochafuel/core/models/historico_estacion.dart';
 import 'package:tolochafuel/core/models/meta_datos.dart';
 import 'package:tolochafuel/core/models/producto_precio.dart';
+import 'package:tolochafuel/features/alias/ui/alias_controller.dart';
 import 'package:tolochafuel/features/cercanas/ui/historial_controller.dart';
 import 'package:tolochafuel/features/cercanas/ui/widgets/tarjeta_gasolinera.dart';
 import 'package:tolochafuel/features/favoritos/ui/favoritos_controller.dart';
@@ -69,6 +70,7 @@ Widget _pantalla(
 }) => MultiProvider(
   providers: [
     ChangeNotifierProvider.value(value: controller),
+    ChangeNotifierProvider(create: (_) => AliasController()),
     if (historial != null) ChangeNotifierProvider.value(value: historial),
   ],
   child: MaterialApp(
@@ -177,8 +179,11 @@ void main() {
     final controller = FavoritosController(api: ApiFalsa());
     await controller.cargar();
     await tester.pumpWidget(
-      ChangeNotifierProvider.value(
-        value: controller,
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: controller),
+          ChangeNotifierProvider(create: (_) => AliasController()),
+        ],
         child: MaterialApp(
           home: Scaffold(body: TarjetaGasolinera(gasolinera: _gasolinera())),
         ),

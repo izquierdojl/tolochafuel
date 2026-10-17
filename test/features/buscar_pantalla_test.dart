@@ -7,6 +7,7 @@ import 'package:tolochafuel/core/models/gasolinera.dart';
 import 'package:tolochafuel/core/models/lugar.dart';
 import 'package:tolochafuel/core/models/meta_datos.dart';
 import 'package:tolochafuel/core/models/producto_precio.dart';
+import 'package:tolochafuel/features/alias/ui/alias_controller.dart';
 import 'package:tolochafuel/features/cercanas/data/cercanas_repositorio.dart';
 import 'package:tolochafuel/features/cercanas/ui/buscar_controller.dart';
 import 'package:tolochafuel/features/cercanas/ui/buscar_pantalla.dart';
@@ -72,6 +73,7 @@ Widget _pantalla(BuscarController controller) => MultiProvider(
   providers: [
     ChangeNotifierProvider.value(value: controller),
     ChangeNotifierProvider(create: (_) => FavoritosController()),
+    ChangeNotifierProvider(create: (_) => AliasController()),
   ],
   child: const MaterialApp(home: Scaffold(body: BuscarPantalla())),
 );

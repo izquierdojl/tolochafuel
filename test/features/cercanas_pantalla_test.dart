@@ -14,6 +14,7 @@ import 'package:tolochafuel/core/models/historico_estacion.dart';
 import 'package:tolochafuel/core/models/meta_datos.dart';
 import 'package:tolochafuel/core/models/producto_precio.dart';
 import 'package:tolochafuel/core/services/ubicacion.dart';
+import 'package:tolochafuel/features/alias/ui/alias_controller.dart';
 import 'package:tolochafuel/features/cercanas/data/cercanas_repositorio.dart';
 import 'package:tolochafuel/features/cercanas/ui/cercanas_controller.dart';
 import 'package:tolochafuel/features/cercanas/ui/cercanas_pantalla.dart';
@@ -140,6 +141,7 @@ Widget _app(
       value: shell ?? ShellController(SeccionApp.cercanas),
     ),
     ChangeNotifierProvider(create: (_) => FavoritosController()),
+    ChangeNotifierProvider(create: (_) => AliasController()),
     if (historial != null) ChangeNotifierProvider.value(value: historial),
   ],
   child: MaterialApp(

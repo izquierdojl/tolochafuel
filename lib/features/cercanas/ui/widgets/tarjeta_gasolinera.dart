@@ -7,9 +7,14 @@ import '../../../../core/models/historico_estacion.dart';
 import '../../../../core/models/producto_precio.dart';
 import '../../../../core/services/navegacion.dart';
 import '../../../../core/utilidades/formato.dart';
+import '../../../alias/ui/alias_controller.dart';
+import '../../../alias/ui/dialogo_alias.dart';
+import '../../../alias/ui/nombre_mostrado.dart';
 import '../../../favoritos/ui/favoritos_controller.dart';
 import '../historial_controller.dart';
 import 'detalle_historico.dart';
+
+enum _AccionTarjeta { alias }
 
 class TarjetaGasolinera extends StatefulWidget {
   const TarjetaGasolinera({super.key, required this.gasolinera});
@@ -42,6 +47,28 @@ class _TarjetaGasolineraState extends State<TarjetaGasolinera> {
     );
   }
 
+  Future<void> _abrirAlias() async {
+    final gasolinera = widget.gasolinera;
+    final aliasController = context.read<AliasController>();
+    final texto = await showDialog<String>(
+      context: context,
+      builder: (_) => DialogoAlias(
+        nombreApi: gasolinera.nombre,
+        aliasActual: aliasController.aliasDe(gasolinera.id),
+      ),
+    );
+    if (texto == null || !mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final guardado = await aliasController.guardar(gasolinera.id, texto);
+    if (!guardado) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo guardar el alias en este dispositivo.'),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final gasolinera = widget.gasolinera;
@@ -53,10 +80,8 @@ class _TarjetaGasolineraState extends State<TarjetaGasolinera> {
     );
     final historial = context.watch<HistorialController?>();
     final historico = historial?.historico(gasolinera.id);
-    final subtitulo = [
-      if (gasolinera.direccion != null) gasolinera.direccion!,
-      if (gasolinera.municipio != null) gasolinera.municipio!,
-    ].join(' · ');
+    final alias = context.watch<AliasController>().aliasDe(gasolinera.id);
+    final mostrado = nombreMostrado(gasolinera, alias);
     final estiloSecundario = tema.textTheme.bodySmall?.copyWith(
       color: esquema.onSurfaceVariant,
     );
@@ -72,7 +97,7 @@ class _TarjetaGasolineraState extends State<TarjetaGasolinera> {
               children: [
                 Expanded(
                   child: Text(
-                    gasolinera.nombre,
+                    mostrado.titulo,
                     style: tema.textTheme.titleMedium,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -138,11 +163,25 @@ class _TarjetaGasolineraState extends State<TarjetaGasolinera> {
                   onPressed: () =>
                       context.read<FavoritosController>().alternar(gasolinera),
                 ),
+                PopupMenuButton<_AccionTarjeta>(
+                  tooltip: 'Más acciones',
+                  iconSize: 20,
+                  icon: Icon(Icons.more_vert, color: esquema.onSurfaceVariant),
+                  onSelected: (_) => _abrirAlias(),
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: _AccionTarjeta.alias,
+                      child: Text(
+                        alias == null ? 'Poner alias…' : 'Editar alias…',
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
-            if (subtitulo.isNotEmpty) ...[
+            if (mostrado.subtitulo.isNotEmpty) ...[
               const SizedBox(height: 2),
-              Text(subtitulo, style: estiloSecundario),
+              Text(mostrado.subtitulo, style: estiloSecundario),
             ],
             const SizedBox(height: 8),
             if (gasolinera.productos.isEmpty)

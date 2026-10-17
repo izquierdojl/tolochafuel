@@ -9,7 +9,10 @@ import 'package:tolochafuel/core/api/precios_gasolina_api.dart';
 import 'package:tolochafuel/core/models/gasolinera.dart';
 import 'package:tolochafuel/core/models/historico_estacion.dart';
 import 'package:tolochafuel/core/models/producto_precio.dart';
+import 'package:tolochafuel/features/alias/data/alias_repositorio.dart';
+import 'package:tolochafuel/features/alias/ui/alias_controller.dart';
 import 'package:tolochafuel/features/cercanas/ui/historial_controller.dart';
+import 'package:tolochafuel/features/cercanas/ui/widgets/detalle_historico.dart';
 import 'package:tolochafuel/features/cercanas/ui/widgets/tarjeta_gasolinera.dart';
 import 'package:tolochafuel/features/favoritos/ui/favoritos_controller.dart';
 
@@ -28,6 +31,15 @@ class ApiHistoricoFalsa extends PreciosGasolinaApi {
     if (fallo != null) return Future.error(fallo);
     return Future.value(resultado ?? const HistoricoEstacion(series: []));
   }
+}
+
+class AliasRepositorioFalso extends AliasRepositorio {
+  AliasRepositorioFalso(this.inicial);
+
+  final Map<int, String> inicial;
+
+  @override
+  Future<Map<int, String>> cargar() async => inicial;
 }
 
 const _gasolina95 = ProductoPrecio(
@@ -84,16 +96,18 @@ HistoricoEstacion _historico() => HistoricoEstacion(
   ],
 );
 
-Widget _app(HistorialController historial) => MultiProvider(
-  providers: [
-    ChangeNotifierProvider.value(value: historial),
-    ChangeNotifierProvider(create: (_) => FavoritosController()),
-  ],
-  child: MaterialApp(
-    theme: AppTheme.oscuro,
-    home: Scaffold(body: TarjetaGasolinera(gasolinera: _gasolinera())),
-  ),
-);
+Widget _app(HistorialController historial, {AliasController? alias}) =>
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: historial),
+        ChangeNotifierProvider(create: (_) => FavoritosController()),
+        ChangeNotifierProvider.value(value: alias ?? AliasController()),
+      ],
+      child: MaterialApp(
+        theme: AppTheme.oscuro,
+        home: Scaffold(body: TarjetaGasolinera(gasolinera: _gasolinera())),
+      ),
+    );
 
 void main() {
   testWidgets('flecha de bajada verde, subida roja y neutra si igual', (
@@ -234,6 +248,54 @@ void main() {
 
     expect(
       find.text('No hay histórico disponible para esta estación.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('el encabezado del histórico usa el alias cuando existe', (
+    tester,
+  ) async {
+    final historial = HistorialController(
+      api: ApiHistoricoFalsa(resultado: _historico()),
+    );
+    final alias = AliasController(
+      repositorio: AliasRepositorioFalso(const {3213: 'La de la rotonda'}),
+    );
+    await alias.cargar();
+
+    await tester.pumpWidget(_app(historial, alias: alias));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('1,719 €/L'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(
+        of: find.byType(DetalleHistorico),
+        matching: find.text('La de la rotonda'),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('sin alias el encabezado del histórico usa el nombre de la API', (
+    tester,
+  ) async {
+    final historial = HistorialController(
+      api: ApiHistoricoFalsa(resultado: _historico()),
+    );
+
+    await tester.pumpWidget(_app(historial));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('1,719 €/L'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(
+        of: find.byType(DetalleHistorico),
+        matching: find.text('Ballenoil Segovia'),
+      ),
       findsOneWidget,
     );
   });
