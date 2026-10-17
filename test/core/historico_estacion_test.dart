@@ -49,11 +49,11 @@ void main() {
     final historico = HistoricoEstacion.fromJson(_json());
 
     final gasolina = historico.serie('gasoline_95')!;
-    expect(gasolina.cambios().map((p) => p.fecha), [
+    expect(gasolina.cambios().map((c) => c.punto.fecha), [
       DateTime(2026, 10, 8),
       DateTime(2026, 10, 10),
     ]);
-    expect(gasolina.cambios().map((p) => p.precio), [1.729, 1.719]);
+    expect(gasolina.cambios().map((c) => c.punto.precio), [1.729, 1.719]);
 
     final plana = SerieCarburante(
       idApi: 'gasoline_95',
@@ -76,8 +76,81 @@ void main() {
       ],
     );
     expect(muchas.cambios(), hasLength(5));
-    expect(muchas.cambios().first.precio, closeTo(1.73, 0.001));
-    expect(muchas.cambios().last.precio, closeTo(1.77, 0.001));
+    expect(muchas.cambios().first.punto.precio, closeTo(1.73, 0.001));
+    expect(muchas.cambios().last.punto.precio, closeTo(1.77, 0.001));
+  });
+
+  test('cada cambio indica su dirección y su delta', () {
+    final serie = SerieCarburante(
+      idApi: 'gasoline_95',
+      puntos: [
+        PuntoPrecio(fecha: DateTime(2026, 10, 6), precio: 1.700),
+        PuntoPrecio(fecha: DateTime(2026, 10, 7), precio: 1.750),
+        PuntoPrecio(fecha: DateTime(2026, 10, 8), precio: 1.750),
+        PuntoPrecio(fecha: DateTime(2026, 10, 9), precio: 1.720),
+      ],
+    );
+
+    final cambios = serie.cambios();
+    expect(cambios, hasLength(2));
+    expect(cambios.first.tendencia, Tendencia.sube);
+    expect(cambios.first.delta, closeTo(0.050, 0.0001));
+    expect(cambios.last.tendencia, Tendencia.baja);
+    expect(cambios.last.delta, closeTo(-0.030, 0.0001));
+  });
+
+  test('la media y su tendencia comparan con la ventana anterior', () {
+    final subiendo = SerieCarburante(
+      idApi: 'gasoline_95',
+      puntos: [
+        for (var i = 0; i < 14; i++)
+          PuntoPrecio(
+            fecha: DateTime(2026, 9, 20 + i),
+            precio: 1.70 + i * 0.01,
+          ),
+      ],
+    );
+
+    expect(subiendo.media(7), closeTo(1.80, 0.0001));
+    expect(subiendo.tendenciaMedia(7), Tendencia.sube);
+    expect(subiendo.media(30), isNull);
+    expect(subiendo.tendenciaMedia(30), Tendencia.desconocida);
+
+    final bajando = SerieCarburante(
+      idApi: 'gasoline_95',
+      puntos: [
+        for (var i = 0; i < 14; i++)
+          PuntoPrecio(
+            fecha: DateTime(2026, 9, 20 + i),
+            precio: 1.90 - i * 0.01,
+          ),
+      ],
+    );
+    expect(bajando.tendenciaMedia(7), Tendencia.baja);
+
+    final incompleta = SerieCarburante(
+      idApi: 'gasoline_95',
+      puntos: [
+        for (var i = 0; i < 10; i++)
+          PuntoPrecio(fecha: DateTime(2026, 10, 1 + i), precio: 1.70),
+      ],
+    );
+    expect(incompleta.media(7), closeTo(1.70, 0.0001));
+    expect(incompleta.tendenciaMedia(7), Tendencia.desconocida);
+    expect(incompleta.media(30), isNull);
+  });
+
+  test('una serie plana tiene medias iguales', () {
+    final plana = SerieCarburante(
+      idApi: 'gasoline_95',
+      puntos: [
+        for (var i = 0; i < 20; i++)
+          PuntoPrecio(fecha: DateTime(2026, 9, 21 + i), precio: 1.7),
+      ],
+    );
+
+    expect(plana.media(7), closeTo(1.70, 0.0001));
+    expect(plana.tendenciaMedia(7), Tendencia.igual);
   });
 
   test('detecta la variación aunque los últimos días estén planos', () {

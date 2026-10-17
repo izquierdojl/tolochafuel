@@ -13,6 +13,7 @@ import '../../../alias/ui/nombre_mostrado.dart';
 import '../../../favoritos/ui/favoritos_controller.dart';
 import '../historial_controller.dart';
 import 'detalle_historico.dart';
+import 'flecha_tendencia.dart';
 
 enum _AccionTarjeta { alias }
 
@@ -244,42 +245,11 @@ class _FilaPrecio extends StatelessWidget {
             ),
             if (colores != null && tendencia != Tendencia.desconocida) ...[
               const SizedBox(width: 6),
-              _FlechaTendencia(tendencia: tendencia, colores: colores!),
+              FlechaTendencia(tendencia: tendencia, colores: colores!),
             ],
           ],
         ),
       ),
     );
-  }
-}
-
-class _FlechaTendencia extends StatelessWidget {
-  const _FlechaTendencia({required this.tendencia, required this.colores});
-
-  final Tendencia tendencia;
-  final ColoresTendencia colores;
-
-  @override
-  Widget build(BuildContext context) {
-    switch (tendencia) {
-      case Tendencia.baja:
-        return Icon(
-          Icons.arrow_downward,
-          size: 14,
-          color: colores.bajada,
-          semanticLabel: 'Precio a la baja',
-        );
-      case Tendencia.sube:
-        return Icon(
-          Icons.arrow_upward,
-          size: 14,
-          color: colores.subida,
-          semanticLabel: 'Precio al alza',
-        );
-      case Tendencia.igual:
-        return Text('=', style: TextStyle(color: colores.neutra, fontSize: 14));
-      case Tendencia.desconocida:
-        return const SizedBox.shrink();
-    }
   }
 }

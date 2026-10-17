@@ -28,6 +28,7 @@ change propuesto.
 | Estado | `provider` (suficiente para el alcance; sin gestores complejos). |
 | Navegación externa | `url_launcher`: intents `geo:`/Google Maps en Android; Maps web en escritorio. |
 | Persistencia local | `shared_preferences` (favoritos y ajustes). |
+| Gráficos | `fl_chart` para el gráfico del histórico de precios (decisión del usuario). |
 | Calidad | `flutter analyze` + `flutter test` + `dart format`; widget tests de los estados clave. |
 | Entorno | Linux (Debian Stable, escritorio KDE Plasma; la distribución puede cambiar en el futuro). Código en `~/soft/tolochafuel`. Flutter, JDK 21 y Android SDK en rutas de usuario. |
 | Distribución | GitHub Releases: **APK** (Android), **ZIP portable** (Windows) y **tar.gz/AppImage/Flatpak** (Linux); iOS, web/PWA y Play Store aplazados; **sin Docker**. |

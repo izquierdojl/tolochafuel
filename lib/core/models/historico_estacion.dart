@@ -9,6 +9,18 @@ class PuntoPrecio {
   final double precio;
 }
 
+class CambioPrecio {
+  const CambioPrecio({
+    required this.punto,
+    required this.tendencia,
+    required this.delta,
+  });
+
+  final PuntoPrecio punto;
+  final Tendencia tendencia;
+  final double delta;
+}
+
 class Variacion {
   const Variacion({required this.tendencia, this.delta, this.desde});
 
@@ -25,17 +37,50 @@ class SerieCarburante {
 
   Tendencia get tendencia => variacion.tendencia;
 
-  List<PuntoPrecio> cambios({int maximo = 5}) {
-    final cambios = <PuntoPrecio>[];
+  List<CambioPrecio> cambios({int maximo = 5}) {
+    final cambios = <CambioPrecio>[];
     for (var i = 1; i < puntos.length; i++) {
-      if ((puntos[i].precio * 1000).round() !=
-          (puntos[i - 1].precio * 1000).round()) {
-        cambios.add(puntos[i]);
+      if (_milesimas(puntos[i].precio) != _milesimas(puntos[i - 1].precio)) {
+        final delta = puntos[i].precio - puntos[i - 1].precio;
+        cambios.add(
+          CambioPrecio(
+            punto: puntos[i],
+            tendencia: delta < 0 ? Tendencia.baja : Tendencia.sube,
+            delta: delta,
+          ),
+        );
       }
     }
     if (cambios.length <= maximo) return cambios;
     return cambios.sublist(cambios.length - maximo);
   }
+
+  double? media(int registros) {
+    if (registros < 1 || puntos.length < registros) return null;
+    return _mediaDe(puntos.length - registros, registros);
+  }
+
+  Tendencia tendenciaMedia(int registros) {
+    if (registros < 1 || puntos.length < registros * 2) {
+      return Tendencia.desconocida;
+    }
+    final actual = _milesimas(_mediaDe(puntos.length - registros, registros));
+    final anterior = _milesimas(
+      _mediaDe(puntos.length - registros * 2, registros),
+    );
+    if (actual == anterior) return Tendencia.igual;
+    return actual < anterior ? Tendencia.baja : Tendencia.sube;
+  }
+
+  double _mediaDe(int inicio, int registros) {
+    var suma = 0.0;
+    for (var i = inicio; i < inicio + registros; i++) {
+      suma += puntos[i].precio;
+    }
+    return suma / registros;
+  }
+
+  int _milesimas(double precio) => (precio * 1000).round();
 
   Variacion get variacion {
     if (puntos.length < 2) {

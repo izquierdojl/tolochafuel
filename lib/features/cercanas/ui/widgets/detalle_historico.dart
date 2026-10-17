@@ -9,6 +9,8 @@ import '../../../../core/utilidades/formato.dart';
 import '../../../alias/ui/alias_controller.dart';
 import '../../../alias/ui/nombre_mostrado.dart';
 import '../historial_controller.dart';
+import 'flecha_tendencia.dart';
+import 'grafico_historico.dart';
 
 class DetalleHistorico extends StatelessWidget {
   const DetalleHistorico({
@@ -88,15 +90,25 @@ class DetalleHistorico extends StatelessWidget {
   }
 }
 
-class _SeccionProducto extends StatelessWidget {
+class _SeccionProducto extends StatefulWidget {
   const _SeccionProducto({required this.producto, required this.serie});
 
   final ProductoPrecio producto;
   final SerieCarburante serie;
 
   @override
+  State<_SeccionProducto> createState() => _SeccionProductoState();
+}
+
+class _SeccionProductoState extends State<_SeccionProducto> {
+  bool _expandido = false;
+
+  @override
   Widget build(BuildContext context) {
     final tema = Theme.of(context);
+    final colores = tema.extension<ColoresTendencia>();
+    final producto = widget.producto;
+    final serie = widget.serie;
     final cambios = serie.cambios();
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
@@ -112,29 +124,49 @@ class _SeccionProducto extends StatelessWidget {
                 color: tema.colorScheme.onSurfaceVariant,
               ),
             )
-          else ...[
-            for (final punto in cambios.reversed)
+          else
+            for (final cambio in cambios.reversed)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 1),
                 child: Row(
                   children: [
                     Expanded(
                       child: Text(
-                        formatearFecha(punto.fecha),
+                        formatearFecha(cambio.punto.fecha),
                         style: tema.textTheme.bodySmall?.copyWith(
                           color: tema.colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ),
                     Text(
-                      formatearPrecio(punto.precio, unidad: producto.unidad),
+                      formatearPrecio(
+                        cambio.punto.precio,
+                        unidad: producto.unidad,
+                      ),
                       style: tema.textTheme.bodyMedium,
                     ),
+                    if (colores != null) ...[
+                      const SizedBox(width: 6),
+                      FlechaTendencia(
+                        tendencia: cambio.tendencia,
+                        colores: colores,
+                      ),
+                    ],
                   ],
                 ),
               ),
-            const SizedBox(height: 2),
-            _ResumenVariacion(producto: producto, variacion: serie.variacion),
+          if (serie.puntos.length >= 2) ...[
+            const SizedBox(height: 6),
+            _BloqueMedias(
+              producto: producto,
+              serie: serie,
+              expandido: _expandido,
+              onPulsar: () => setState(() => _expandido = !_expandido),
+            ),
+            if (_expandido) ...[
+              const SizedBox(height: 8),
+              GraficoHistorico(serie: serie, unidad: producto.unidad),
+            ],
           ],
         ],
       ),
@@ -142,39 +174,127 @@ class _SeccionProducto extends StatelessWidget {
   }
 }
 
-class _ResumenVariacion extends StatelessWidget {
-  const _ResumenVariacion({required this.producto, required this.variacion});
+class _BloqueMedias extends StatelessWidget {
+  const _BloqueMedias({
+    required this.producto,
+    required this.serie,
+    required this.expandido,
+    required this.onPulsar,
+  });
 
   final ProductoPrecio producto;
-  final Variacion variacion;
+  final SerieCarburante serie;
+  final bool expandido;
+  final VoidCallback onPulsar;
 
   @override
   Widget build(BuildContext context) {
     final tema = Theme.of(context);
+    final esquema = tema.colorScheme;
     final colores = tema.extension<ColoresTendencia>();
-    final delta = variacion.delta;
-    final desde = variacion.desde;
-    final String texto;
-    final Color? color;
-    if ((variacion.tendencia == Tendencia.baja ||
-            variacion.tendencia == Tendencia.sube) &&
-        delta != null &&
-        desde != null) {
-      final verbo = variacion.tendencia == Tendencia.baja ? 'Baja' : 'Sube';
-      texto =
-          '$verbo ${formatearPrecio(delta.abs(), unidad: producto.unidad)} '
-          'desde el ${formatearFecha(desde)}';
-      color = variacion.tendencia == Tendencia.baja
-          ? colores?.bajada
-          : colores?.subida;
-    } else {
-      texto = 'Sin cambios en los últimos 5 días';
-      color = colores?.neutra;
-    }
-    return Text(
-      texto,
-      style: tema.textTheme.bodySmall?.copyWith(
-        color: color ?? tema.colorScheme.onSurfaceVariant,
+    final semana = serie.media(7);
+    final mes = serie.media(30);
+    final filas = <Widget>[
+      if (semana != null)
+        _FilaMedia(
+          etiqueta: 'Última semana',
+          media: semana,
+          tendencia: serie.tendenciaMedia(7),
+          producto: producto,
+          colores: colores,
+        ),
+      if (mes != null)
+        _FilaMedia(
+          etiqueta: 'Último mes',
+          media: mes,
+          tendencia: serie.tendenciaMedia(30),
+          producto: producto,
+          colores: colores,
+        ),
+    ];
+    return Semantics(
+      container: true,
+      button: true,
+      label: 'Ver gráfico de precios',
+      child: InkWell(
+        onTap: onPulsar,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            border: Border.all(color: esquema.outlineVariant),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: filas.isEmpty
+                    ? Text(
+                        'Ver gráfico de precios',
+                        style: tema.textTheme.bodySmall?.copyWith(
+                          color: esquema.onSurfaceVariant,
+                        ),
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: filas,
+                      ),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                expandido ? Icons.expand_less : Icons.expand_more,
+                size: 18,
+                color: esquema.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FilaMedia extends StatelessWidget {
+  const _FilaMedia({
+    required this.etiqueta,
+    required this.media,
+    required this.tendencia,
+    required this.producto,
+    required this.colores,
+  });
+
+  final String etiqueta;
+  final double media;
+  final Tendencia tendencia;
+  final ProductoPrecio producto;
+  final ColoresTendencia? colores;
+
+  @override
+  Widget build(BuildContext context) {
+    final tema = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              etiqueta,
+              style: tema.textTheme.bodySmall?.copyWith(
+                color: tema.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          Text(
+            formatearPrecio(media, unidad: producto.unidad),
+            style: tema.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          if (colores != null && tendencia != Tendencia.desconocida) ...[
+            const SizedBox(width: 6),
+            FlechaTendencia(tendencia: tendencia, colores: colores!),
+          ],
+        ],
       ),
     );
   }
