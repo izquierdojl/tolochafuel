@@ -4,11 +4,44 @@ on:
   pull_request:
     branches: [dev, main]
   push:
-    branches: [main]
+    branches: [dev]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  cambios:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      codigo: ${{ steps.diff.outputs.codigo }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Detectar cambios de código
+        id: diff
+        run: |
+          BASE="${{ github.event.pull_request.base.sha || github.event.before }}"
+          if [ -z "$BASE" ] || ! git cat-file -e "${BASE}^{commit}" 2>/dev/null; then
+            echo "codigo=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if git diff --name-only "$BASE" HEAD | grep -qvE '^(openspec/|.*\.md$)'; then
+            echo "codigo=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "codigo=false" >> "$GITHUB_OUTPUT"
+          fi
+
   calidad:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
         with:
@@ -20,24 +53,16 @@ jobs:
           channel: stable
           cache: true
 
-      - uses: actions/setup-node@v7
-        with:
-          node-version-file: .nvmrc
-
-      - name: Changes OpenSpec
-        run: bash scripts/check_changes.sh
-
       - name: Dependencias Dart
         run: flutter pub get
 
-      - name: Formato
-        run: dart format --output=none --set-exit-if-changed lib test
+      - name: Verificación
+        run: bash scripts/verificar.sh
 
-      - name: Análisis
-        run: flutter analyze
-
-      - name: Tests
-        run: flutter test
+      - uses: actions/setup-node@v7
+        if: github.event_name == 'pull_request'
+        with:
+          node-version-file: .nvmrc
 
       - name: Dependencias Node
         if: github.event_name == 'pull_request'
@@ -48,7 +73,10 @@ jobs:
         run: npx commitlint --from "${{ github.event.pull_request.base.sha }}" --to "${{ github.event.pull_request.head.sha }}"
 
   linux:
+    needs: cambios
+    if: github.event_name == 'pull_request' && needs.cambios.outputs.codigo == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
 
@@ -61,20 +89,10 @@ jobs:
       - name: Dependencias del sistema
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev flatpak flatpak-builder elfutils imagemagick
-          flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-          flatpak install --user -y flathub org.gnome.Platform//46 org.gnome.Sdk//46
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
 
       - name: Dependencias Dart
         run: flutter pub get
 
       - name: Build Linux
         run: flutter build linux --release
-
-      - name: Empaquetar (tar.gz, AppImage y Flatpak)
-        run: bash packaging/linux/empaquetar.sh
-
-      - uses: actions/upload-artifact@v7
-        with:
-          name: linux-ci
-          path: dist/tolochafuel-linux-x64.*
