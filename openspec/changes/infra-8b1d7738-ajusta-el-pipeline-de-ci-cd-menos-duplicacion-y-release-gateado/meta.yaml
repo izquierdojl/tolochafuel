@@ -1,0 +1,8 @@
+tipo: infra
+id: 8b1d7738
+titulo: "Ajusta el pipeline de CI/CD: menos duplicación y release gateado"
+autor:
+  nombre: "izquierdojl"
+  email: "izquierdojl@users.noreply.github.com"
+fecha: "2026-10-25T00:26:42+02:00"
+branch: dev

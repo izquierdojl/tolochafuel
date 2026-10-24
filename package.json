@@ -7,6 +7,7 @@
     "node": ">=22"
   },
   "scripts": {
+    "verify": "bash scripts/verificar.sh",
     "check:changes": "bash scripts/check_changes.sh",
     "release:major": "node scripts/bump.js major",
     "release:minor": "node scripts/bump.js minor",

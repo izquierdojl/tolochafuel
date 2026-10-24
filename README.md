@@ -14,8 +14,7 @@ gasolinera y favoritos.
 ```
 flutter pub get
 flutter run -d <dispositivo>
-flutter analyze && flutter test
-dart format .
+npm run verify
 bash scripts/check_changes.sh
 ```
 

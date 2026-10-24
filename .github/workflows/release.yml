@@ -2,15 +2,15 @@ name: Release
 
 on:
   workflow_call:
-  push:
-    tags: ['v*']
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   android:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
         with:
@@ -51,9 +51,11 @@ jobs:
         with:
           name: apk
           path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 3
 
   windows:
     runs-on: windows-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
         with:
@@ -79,9 +81,11 @@ jobs:
         with:
           name: windows
           path: tolochafuel-windows-x64.zip
+          retention-days: 3
 
   linux:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
         with:
@@ -113,10 +117,14 @@ jobs:
         with:
           name: linux
           path: dist/tolochafuel-linux-x64.*
+          retention-days: 3
 
   publicar:
     needs: [android, windows, linux]
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v7
         with:

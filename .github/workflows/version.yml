@@ -7,10 +7,52 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: versionado-main
+  cancel-in-progress: false
+
 jobs:
+  comprobar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: CI de la punta de dev
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! SHA="$(git rev-parse HEAD^2 2>/dev/null)"; then
+            echo "main no apunta a un merge: no se publica sin CI verificada." >&2
+            exit 1
+          fi
+          API="repos/${{ github.repository }}/actions/workflows/ci.yml/runs"
+          INTENTO=0
+          while [ "$INTENTO" -lt 40 ]; do
+            PENDIENTES="$(gh api "$API?head_sha=$SHA&per_page=50" --jq '[.workflow_runs[] | select(.conclusion == null)] | length')"
+            if [ "$PENDIENTES" -eq 0 ]; then
+              break
+            fi
+            INTENTO=$((INTENTO + 1))
+            sleep 15
+          done
+          VERDE="$(gh api "$API?head_sha=$SHA&per_page=50" --jq '[.workflow_runs[] | select(.conclusion == "success")] | length')"
+          ROJOS="$(gh api "$API?head_sha=$SHA&per_page=50" --jq '[.workflow_runs[] | select(.conclusion == "failure" or .conclusion == "timed_out" or .conclusion == "startup_failure" or .conclusion == "action_required")] | length')"
+          if [ "$VERDE" -eq 0 ] || [ "$ROJOS" -ne 0 ]; then
+            echo "La CI de $SHA no está en verde: no se versiona ni se publica." >&2
+            exit 1
+          fi
+
   bump:
+    needs: comprobar
     if: ${{ !startsWith(github.event.head_commit.message, 'chore(release)') }}
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       bump: ${{ steps.bump.outputs.bump }}
     steps:
@@ -62,5 +104,7 @@ jobs:
   publicar:
     needs: bump
     if: ${{ needs.bump.outputs.bump != '' }}
+    permissions:
+      contents: write
     uses: ./.github/workflows/release.yml
     secrets: inherit
