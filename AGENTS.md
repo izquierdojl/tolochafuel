@@ -136,8 +136,12 @@ decisión explícita del usuario y actualización de este documento.
 ## 9. CI/CD y distribución
 
 - `ci.yml`: `check_changes.sh` + `dart format` + `flutter analyze` + `flutter test` +
-  commitlint en PRs. Corre en PRs a `dev`/`main` y en push a `main` (no en push a `dev`).
-- `version.yml` (push a `main`) → bump + tag + llama a `release.yml`.
+  commitlint en PRs. Corre en PRs a `dev`/`main` y en push a `dev` (no en push a `main`:
+  el PR ya valida el merge ref). El job `linux` del PR solo compila
+  (`flutter build linux --release`); empaquetar (tar.gz, AppImage, Flatpak) se valida en el
+  release, que es donde se publica.
+- `version.yml` (push a `main`) → comprueba que la CI de la punta de `dev` está en verde →
+  bump + tag + llama a `release.yml`. Sin merge commit o sin CI verde no hay tag ni release.
 - `release.yml`: job `android` (ubuntu, `flutter build apk --release`) y publicador de
   GitHub Releases. El APK se firma con el keystore de release, materializado desde los
   secretos `ANDROID_KEYSTORE_*` (nunca en el repo; copia de seguridad local en
