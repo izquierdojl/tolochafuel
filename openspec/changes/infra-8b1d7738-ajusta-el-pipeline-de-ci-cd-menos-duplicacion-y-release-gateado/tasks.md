@@ -34,6 +34,7 @@
 ## Workflow follow-up
 
 - Archivar el change (`skip_specs`), commitear en `dev` con `git status` limpio y abrir el PR `dev → main`.
+- Primera medición (PR #10, run 40139253760 intento 2, caché caliente): `calidad` 78 s, `linux` 120 s, wall 2 min 15 s (línea base 3,1 min); `Dependencias del sistema` baja de 114 s a 42 s y ya no hay artefactos ni empaquetado en el PR. Si se quiere bajar de 2 min, la palanca es mover el build Linux a `push: dev`.
 - Medir 5 PRs con `gh run list --json name,event,createdAt,updatedAt,conclusion` y comparar con la línea base (PR 3,1 min p50; 22,4 min de runner por cambio; 3 empaquetados).
 - Probar el gate: un commit que rompa `flutter test` en `dev` no debe producir tag ni release.
 - Confirmar en un release completo: 5 assets, un build por plataforma y 0 artefactos `linux-ci`.
