@@ -31,7 +31,9 @@ void main() {
 
   testWidgets('la app arranca con el tema guardado (claro)', (tester) async {
     final configuracion = ConfiguracionController(
-      repositorio: RepositorioFalso(inicial: const Ajustes(temaOscuro: false)),
+      repositorio: RepositorioFalso(
+        inicial: const Ajustes(tema: ThemeMode.light),
+      ),
     );
     await configuracion.cargar();
 
@@ -66,15 +68,77 @@ void main() {
     await tester.pumpAndSettle();
     expect(
       tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
+      ThemeMode.system,
+    );
+
+    await configuracion.cambiarTema(ThemeMode.dark);
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
       ThemeMode.dark,
     );
 
-    await configuracion.cambiarTema(oscuro: false);
+    await configuracion.cambiarTema(ThemeMode.light);
     await tester.pumpAndSettle();
-
     expect(
       tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
       ThemeMode.light,
     );
+  });
+
+  Brightness brilloActual(WidgetTester tester) =>
+      Theme.of(tester.element(find.byType(Scaffold).first)).brightness;
+
+  testWidgets('con Sistema la app sigue el brillo de la plataforma', (
+    tester,
+  ) async {
+    addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+    final configuracion = ConfiguracionController(
+      repositorio: RepositorioFalso(),
+    );
+    await configuracion.cargar();
+
+    await tester.pumpWidget(
+      TolochaFuelApp(
+        favoritos: FavoritosController(),
+        configuracion: configuracion,
+        alias: AliasController(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(brilloActual(tester), Brightness.dark);
+
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
+    await tester.pumpAndSettle();
+    expect(brilloActual(tester), Brightness.light);
+  });
+
+  testWidgets('con Claro u Oscuro la app ignora el brillo de la plataforma', (
+    tester,
+  ) async {
+    addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+    final configuracion = ConfiguracionController(
+      repositorio: RepositorioFalso(
+        inicial: const Ajustes(tema: ThemeMode.light),
+      ),
+    );
+    await configuracion.cargar();
+
+    await tester.pumpWidget(
+      TolochaFuelApp(
+        favoritos: FavoritosController(),
+        configuracion: configuracion,
+        alias: AliasController(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(brilloActual(tester), Brightness.light);
+
+    await configuracion.cambiarTema(ThemeMode.dark);
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
+    await tester.pumpAndSettle();
+    expect(brilloActual(tester), Brightness.dark);
   });
 }

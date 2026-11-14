@@ -30,6 +30,25 @@ Widget _pantalla(ConfiguracionController controller) =>
     );
 
 void main() {
+  Set<ThemeMode> seleccionado(WidgetTester tester) => tester
+      .widget<SegmentedButton<ThemeMode>>(
+        find.byType(SegmentedButton<ThemeMode>),
+      )
+      .selected;
+
+  testWidgets('el selector de tema marca Sistema por defecto', (tester) async {
+    final controller = ConfiguracionController(repositorio: RepositorioFalso());
+    await controller.cargar();
+
+    await tester.pumpWidget(_pantalla(controller));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sistema'), findsOneWidget);
+    expect(find.text('Claro'), findsOneWidget);
+    expect(find.text('Oscuro'), findsOneWidget);
+    expect(seleccionado(tester), {ThemeMode.system});
+  });
+
   testWidgets('cambia el tema al instante y lo persiste', (tester) async {
     final repositorio = RepositorioFalso();
     final controller = ConfiguracionController(repositorio: repositorio);
@@ -37,20 +56,40 @@ void main() {
 
     await tester.pumpWidget(_pantalla(controller));
     await tester.pumpAndSettle();
-    expect(
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
-      isTrue,
-    );
 
-    await tester.tap(find.byType(SwitchListTile));
+    await tester.tap(find.text('Claro'));
     await tester.pumpAndSettle();
 
-    expect(controller.temaOscuro, isFalse);
-    expect(repositorio.guardados!.temaOscuro, isFalse);
-    expect(
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
-      isFalse,
-    );
+    expect(controller.tema, ThemeMode.light);
+    expect(repositorio.guardados!.tema, ThemeMode.light);
+    expect(seleccionado(tester), {ThemeMode.light});
+
+    await tester.tap(find.text('Oscuro'));
+    await tester.pumpAndSettle();
+
+    expect(controller.tema, ThemeMode.dark);
+    expect(repositorio.guardados!.tema, ThemeMode.dark);
+
+    await tester.tap(find.text('Sistema'));
+    await tester.pumpAndSettle();
+
+    expect(controller.tema, ThemeMode.system);
+    expect(repositorio.guardados!.tema, ThemeMode.system);
+    expect(seleccionado(tester), {ThemeMode.system});
+  });
+
+  testWidgets('el selector de tema cabe en 320 px de ancho', (tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final controller = ConfiguracionController(repositorio: RepositorioFalso());
+    await controller.cargar();
+
+    await tester.pumpWidget(_pantalla(controller));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Sistema'), findsOneWidget);
   });
 
   testWidgets('el radio va de 10 a 50 km con nota del máximo de la API', (

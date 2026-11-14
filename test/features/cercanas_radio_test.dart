@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:tolochafuel/core/api/precios_gasolina_api.dart';
@@ -118,7 +119,7 @@ void main() {
     final (_, repositorio, configuracion) = await preparar();
 
     await configuracion.cambiarRadio(Ajustes.radioPorDefectoKm);
-    await configuracion.cambiarTema(oscuro: false);
+    await configuracion.cambiarTema(ThemeMode.light);
     await pumpEventQueue();
 
     expect(repositorio.llamadas, 1);

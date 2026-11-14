@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter/foundation.dart';
 
 import '../../../app/shell/seccion_app.dart';
@@ -14,7 +15,7 @@ class ConfiguracionController extends ChangeNotifier {
   bool cargado = false;
   String? aviso;
 
-  bool get temaOscuro => ajustes.temaOscuro;
+  ThemeMode get tema => ajustes.tema;
 
   double get radioKm => ajustes.radioKm;
 
@@ -31,8 +32,8 @@ class ConfiguracionController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> cambiarTema({required bool oscuro}) =>
-      _aplicar(ajustes.copyWith(temaOscuro: oscuro));
+  Future<void> cambiarTema(ThemeMode modo) =>
+      _aplicar(ajustes.copyWith(tema: modo));
 
   Future<void> cambiarRadio(double km) => _aplicar(
     ajustes.copyWith(

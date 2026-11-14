@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tolochafuel/app/shell/seccion_app.dart';
 import 'package:tolochafuel/core/models/criterio_economicas.dart';
@@ -30,7 +31,7 @@ void main() {
     final controller = ConfiguracionController(
       repositorio: RepositorioFalso(
         inicial: const Ajustes(
-          temaOscuro: false,
+          tema: ThemeMode.light,
           radioKm: 40,
           pantallaInicial: SeccionApp.favoritas,
         ),
@@ -40,7 +41,7 @@ void main() {
     await controller.cargar();
 
     expect(controller.cargado, isTrue);
-    expect(controller.temaOscuro, isFalse);
+    expect(controller.tema, ThemeMode.light);
     expect(controller.radioKm, 40);
     expect(controller.pantallaInicial, SeccionApp.favoritas);
   });
@@ -52,7 +53,7 @@ void main() {
 
     await controller.cargar();
 
-    expect(controller.temaOscuro, isTrue);
+    expect(controller.tema, ThemeMode.system);
     expect(controller.radioKm, Ajustes.radioPorDefectoKm);
     expect(controller.aviso, isNotNull);
   });
@@ -62,9 +63,17 @@ void main() {
     final controller = ConfiguracionController(repositorio: repositorio);
     await controller.cargar();
 
-    await controller.cambiarTema(oscuro: false);
-    expect(controller.temaOscuro, isFalse);
-    expect(repositorio.guardados!.temaOscuro, isFalse);
+    await controller.cambiarTema(ThemeMode.light);
+    expect(controller.tema, ThemeMode.light);
+    expect(repositorio.guardados!.tema, ThemeMode.light);
+
+    await controller.cambiarTema(ThemeMode.dark);
+    expect(controller.tema, ThemeMode.dark);
+    expect(repositorio.guardados!.tema, ThemeMode.dark);
+
+    await controller.cambiarTema(ThemeMode.system);
+    expect(controller.tema, ThemeMode.system);
+    expect(repositorio.guardados!.tema, ThemeMode.system);
 
     await controller.cambiarPantallaInicial(SeccionApp.masEconomicas);
     expect(controller.pantallaInicial, SeccionApp.masEconomicas);
@@ -101,9 +110,9 @@ void main() {
     );
     await controller.cargar();
 
-    await controller.cambiarTema(oscuro: false);
+    await controller.cambiarTema(ThemeMode.light);
 
-    expect(controller.temaOscuro, isFalse);
+    expect(controller.tema, ThemeMode.light);
     expect(controller.aviso, isNotNull);
   });
 }

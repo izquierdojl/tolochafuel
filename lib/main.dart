@@ -64,7 +64,7 @@ class TolochaFuelApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           theme: AppTheme.claro,
           darkTheme: AppTheme.oscuro,
-          themeMode: config.temaOscuro ? ThemeMode.dark : ThemeMode.light,
+          themeMode: config.tema,
           home: const ShellPantalla(),
         ),
       ),
