@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -13,6 +16,8 @@ import 'package:tolochafuel/core/models/producto_precio.dart';
 import 'package:tolochafuel/features/alias/ui/alias_controller.dart';
 import 'package:tolochafuel/features/cercanas/ui/historial_controller.dart';
 import 'package:tolochafuel/features/cercanas/ui/widgets/tarjeta_gasolinera.dart';
+import 'package:tolochafuel/features/favoritos/data/favorito.dart';
+import 'package:tolochafuel/features/favoritos/data/favoritos_repositorio.dart';
 import 'package:tolochafuel/features/favoritos/ui/favoritos_controller.dart';
 import 'package:tolochafuel/features/favoritos/ui/favoritos_pantalla.dart';
 
@@ -29,6 +34,30 @@ class ApiFalsa extends PreciosGasolinaApi {
     final error = errores[id];
     if (error != null) throw error;
     return detalles[id] ?? const DetalleEstacion(productos: []);
+  }
+}
+
+class ApiLenta extends PreciosGasolinaApi {
+  ApiLenta(this.completer);
+
+  final Completer<DetalleEstacion> completer;
+
+  @override
+  Future<DetalleEstacion> detalle(int id) => completer.future;
+}
+
+class RepositorioFalso extends FavoritosRepositorio {
+  RepositorioFalso({this.inicial = const []});
+
+  final List<Favorito> inicial;
+  bool fallarGuardado = false;
+
+  @override
+  Future<List<Favorito>> cargar() async => inicial;
+
+  @override
+  Future<void> guardar(List<Favorito> favoritos) async {
+    if (fallarGuardado) throw Exception('fallo de guardado');
   }
 }
 
@@ -55,9 +84,12 @@ const _producto = ProductoPrecio(
   precio: 1.729,
 );
 
-Gasolinera _gasolinera() => const Gasolinera(
-  id: 3194,
-  nombre: 'Ballenoil Democracia',
+Gasolinera _gasolinera({
+  int id = 3194,
+  String nombre = 'Ballenoil Democracia',
+}) => Gasolinera(
+  id: id,
+  nombre: nombre,
   lat: 40.4,
   lng: -3.61,
   urlWeb: '',
@@ -278,5 +310,124 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byIcon(Icons.arrow_downward), findsOneWidget);
+  });
+
+  testWidgets('arrastra el asa y persiste el nuevo orden', (tester) async {
+    final controller = FavoritosController(api: ApiFalsa());
+    await controller.cargar();
+    await controller.alternar(_gasolinera(id: 1, nombre: 'Primera'));
+    await controller.alternar(_gasolinera(id: 2, nombre: 'Segunda'));
+    await controller.alternar(_gasolinera(id: 3, nombre: 'Tercera'));
+
+    await tester.pumpWidget(_pantalla(controller));
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.drag_handle), findsNWidgets(3));
+
+    await tester.drag(
+      find.byIcon(Icons.drag_handle).first,
+      const Offset(0, 700),
+    );
+    await tester.pumpAndSettle();
+
+    expect(controller.favoritos.map((favorito) => favorito.id), [2, 3, 1]);
+
+    final recargado = FavoritosController(api: ApiFalsa());
+    await recargado.cargar();
+    expect(recargado.favoritos.map((favorito) => favorito.id), [2, 3, 1]);
+  });
+
+  testWidgets('con un solo favorito no muestra asa', (tester) async {
+    final controller = FavoritosController(api: ApiFalsa());
+    await controller.cargar();
+    await controller.alternar(_gasolinera());
+
+    await tester.pumpWidget(_pantalla(controller));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Ballenoil Democracia'), findsOneWidget);
+    expect(find.byIcon(Icons.drag_handle), findsNothing);
+  });
+
+  testWidgets('reordena con pulsación larga en la tarjeta', (tester) async {
+    final controller = FavoritosController(api: ApiFalsa());
+    await controller.cargar();
+    await controller.alternar(_gasolinera(id: 1, nombre: 'Primera'));
+    await controller.alternar(_gasolinera(id: 2, nombre: 'Segunda'));
+    await controller.alternar(_gasolinera(id: 3, nombre: 'Tercera'));
+
+    await tester.pumpWidget(_pantalla(controller));
+    await tester.pumpAndSettle();
+
+    final gesto = await tester.startGesture(
+      tester.getCenter(find.text('Primera')),
+    );
+    await tester.pump(kLongPressTimeout + const Duration(milliseconds: 100));
+    await gesto.moveBy(const Offset(0, 700));
+    await tester.pump();
+    await gesto.up();
+    await tester.pumpAndSettle();
+
+    expect(controller.favoritos.map((favorito) => favorito.id), [2, 3, 1]);
+  });
+
+  testWidgets('muestra el aviso si falla el guardado del orden', (
+    tester,
+  ) async {
+    final repositorio = RepositorioFalso(
+      inicial: const [
+        Favorito(id: 1, nombre: 'Primera', lat: 40.4, lng: -3.7),
+        Favorito(id: 2, nombre: 'Segunda', lat: 40.5, lng: -3.8),
+      ],
+    )..fallarGuardado = true;
+    final controller = FavoritosController(
+      repositorio: repositorio,
+      api: ApiFalsa(),
+    );
+    await controller.cargar();
+
+    await tester.pumpWidget(_pantalla(controller));
+    await tester.pumpAndSettle();
+
+    await controller.mover(0, 1);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('No se pudieron guardar los favoritos en este dispositivo.'),
+      findsOneWidget,
+    );
+
+    repositorio.fallarGuardado = false;
+    await controller.mover(1, 0);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('No se pudieron guardar los favoritos en este dispositivo.'),
+      findsNothing,
+    );
+  });
+
+  testWidgets('muestra la progresión mientras carga el precio', (tester) async {
+    final completer = Completer<DetalleEstacion>();
+    final controller = FavoritosController(
+      repositorio: RepositorioFalso(
+        inicial: const [
+          Favorito(id: 1, nombre: 'Primera', lat: 40.4, lng: -3.7),
+        ],
+      ),
+      api: ApiLenta(completer),
+    );
+    await controller.cargar();
+
+    await tester.pumpWidget(_pantalla(controller));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+
+    completer.complete(const DetalleEstacion(productos: []));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LinearProgressIndicator), findsNothing);
   });
 }

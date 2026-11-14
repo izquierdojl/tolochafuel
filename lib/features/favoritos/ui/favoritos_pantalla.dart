@@ -28,18 +28,110 @@ class _FavoritosPantallaState extends State<FavoritosPantalla> {
   Widget build(BuildContext context) {
     final controller = context.watch<FavoritosController>();
     final favoritos = controller.favoritos;
-    if (favoritos.isEmpty) return const _FavoritosVacio();
+    final aviso = controller.aviso;
     return Column(
       children: [
+        if (aviso != null) _AvisoFavoritos(mensaje: aviso),
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.only(top: 4, bottom: 8),
-            itemCount: favoritos.length,
-            itemBuilder: (context, indice) =>
-                _FavoritoConPrecio(favorito: favoritos[indice]),
+          child: favoritos.isEmpty
+              ? const _FavoritosVacio()
+              : ReorderableListView.builder(
+                  padding: const EdgeInsets.only(top: 4, bottom: 8),
+                  buildDefaultDragHandles: false,
+                  itemCount: favoritos.length,
+                  onReorderItem: (antiguo, nuevo) {
+                    controller.mover(antiguo, nuevo);
+                  },
+                  itemBuilder: (context, indice) {
+                    final favorito = favoritos[indice];
+                    return _FavoritoReordenable(
+                      key: ValueKey(favorito.id),
+                      favorito: favorito,
+                      indice: indice,
+                      mostrarAsa: favoritos.length > 1,
+                    );
+                  },
+                ),
+        ),
+        if (favoritos.isNotEmpty) PieFrescura(meta: controller.meta),
+      ],
+    );
+  }
+}
+
+class _AvisoFavoritos extends StatelessWidget {
+  const _AvisoFavoritos({required this.mensaje});
+
+  final String mensaje;
+
+  @override
+  Widget build(BuildContext context) {
+    final tema = Theme.of(context);
+    final esquema = tema.colorScheme;
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: esquema.errorContainer,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline, size: 20, color: esquema.onErrorContainer),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              mensaje,
+              style: tema.textTheme.bodySmall?.copyWith(
+                color: esquema.onErrorContainer,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FavoritoReordenable extends StatelessWidget {
+  const _FavoritoReordenable({
+    super.key,
+    required this.favorito,
+    required this.indice,
+    required this.mostrarAsa,
+  });
+
+  final Favorito favorito;
+  final int indice;
+  final bool mostrarAsa;
+
+  @override
+  Widget build(BuildContext context) {
+    final contenido = ReorderableDelayedDragStartListener(
+      index: indice,
+      child: _FavoritoConPrecio(favorito: favorito),
+    );
+    if (!mostrarAsa) return contenido;
+    final esquema = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        Expanded(child: contenido),
+        Semantics(
+          button: true,
+          label: 'Reordenar ${favorito.nombre}',
+          child: ReorderableDragStartListener(
+            index: indice,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: SizedBox(
+                width: 48,
+                height: 48,
+                child: Icon(Icons.drag_handle, color: esquema.onSurfaceVariant),
+              ),
+            ),
           ),
         ),
-        PieFrescura(meta: controller.meta),
       ],
     );
   }

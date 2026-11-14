@@ -33,12 +33,4 @@ class FavoritosRepositorio {
       jsonEncode([for (final favorito in favoritos) favorito.toJson()]),
     );
   }
-
-  Future<void> borrar(int id) async {
-    final favoritos = await cargar();
-    await guardar([
-      for (final favorito in favoritos)
-        if (favorito.id != id) favorito,
-    ]);
-  }
 }

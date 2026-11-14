@@ -50,17 +50,15 @@ void main() {
     expect(await FavoritosRepositorio().cargar(), isEmpty);
   });
 
-  test('borrar elimina solo el favorito indicado', () async {
-    final repositorio = FavoritosRepositorio();
-    await repositorio.guardar(const [
-      Favorito(id: 1, nombre: 'Una', lat: 40.4, lng: -3.7),
-      Favorito(id: 2, nombre: 'Otra', lat: 40.5, lng: -3.8),
+  test('conserva el orden en que se guardan los favoritos', () async {
+    await FavoritosRepositorio().guardar(const [
+      Favorito(id: 3, nombre: 'Tercera', lat: 40.3, lng: -3.6),
+      Favorito(id: 1, nombre: 'Primera', lat: 40.4, lng: -3.7),
+      Favorito(id: 2, nombre: 'Segunda', lat: 40.5, lng: -3.8),
     ]);
 
-    await repositorio.borrar(1);
+    final recargados = await FavoritosRepositorio().cargar();
 
-    final restantes = await repositorio.cargar();
-    expect(restantes, hasLength(1));
-    expect(restantes.single.id, 2);
+    expect(recargados.map((favorito) => favorito.id), [3, 1, 2]);
   });
 }

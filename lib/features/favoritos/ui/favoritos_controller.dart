@@ -27,6 +27,7 @@ class FavoritosController extends ChangeNotifier {
   final Set<int> _cargandoDetalle = {};
   final Map<int, String> _erroresDetalle = {};
   final Set<int> _consultando = {};
+  Future<void> _colaPersistencia = Future.value();
 
   bool esFavorito(int id) => favoritos.any((favorito) => favorito.id == id);
 
@@ -63,6 +64,19 @@ class FavoritosController extends ChangeNotifier {
     await cargarDetalle(gasolinera.id);
   }
 
+  Future<void> mover(int desde, int hasta) async {
+    if (favoritos.length < 2) return;
+    if (desde < 0 || desde >= favoritos.length) return;
+    if (hasta < 0 || hasta >= favoritos.length) return;
+    if (desde == hasta) return;
+    final lista = List<Favorito>.of(favoritos);
+    final favorito = lista.removeAt(desde);
+    lista.insert(hasta, favorito);
+    favoritos = lista;
+    notifyListeners();
+    await _persistir();
+  }
+
   Future<void> quitar(int id) async {
     favoritos = [
       for (final favorito in favoritos)
@@ -71,25 +85,24 @@ class FavoritosController extends ChangeNotifier {
     _detalles.remove(id);
     _erroresDetalle.remove(id);
     notifyListeners();
-    await _persistirBorrado(id);
+    await _persistir();
   }
 
-  Future<void> _persistir() async {
-    try {
-      await repositorio.guardar(favoritos);
-    } catch (_) {
-      aviso = 'No se pudieron guardar los favoritos en este dispositivo.';
-      notifyListeners();
-    }
-  }
-
-  Future<void> _persistirBorrado(int id) async {
-    try {
-      await repositorio.borrar(id);
-    } catch (_) {
-      aviso = 'No se pudieron guardar los favoritos en este dispositivo.';
-      notifyListeners();
-    }
+  Future<void> _persistir() {
+    final instantanea = List<Favorito>.unmodifiable(favoritos);
+    final operacion = _colaPersistencia.then(
+      (_) => repositorio.guardar(instantanea),
+    );
+    _colaPersistencia = operacion.catchError((Object _) {});
+    return operacion
+        .then((_) {
+          aviso = null;
+          notifyListeners();
+        })
+        .catchError((Object _) {
+          aviso = 'No se pudieron guardar los favoritos en este dispositivo.';
+          notifyListeners();
+        });
   }
 
   Future<void> cargarDetalles() async {
