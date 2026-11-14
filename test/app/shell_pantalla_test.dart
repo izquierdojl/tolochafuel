@@ -169,7 +169,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Configuración').last);
     await tester.pumpAndSettle();
-    expect(find.text('Tema oscuro'), findsOneWidget);
+    expect(find.text('Tema'), findsOneWidget);
+    expect(find.text('Sistema'), findsOneWidget);
   });
 
   testWidgets('arranca en la pantalla inicial y no salta al cambiarla', (

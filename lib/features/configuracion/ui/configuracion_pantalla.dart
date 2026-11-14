@@ -16,12 +16,41 @@ class ConfiguracionPantalla extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 8),
       children: [
-        SwitchListTile(
-          secondary: const Icon(Icons.brightness_6_outlined),
-          title: const Text('Tema oscuro'),
-          subtitle: const Text('Desactívalo para usar el tema claro'),
-          value: config.temaOscuro,
-          onChanged: (valor) => config.cambiarTema(oscuro: valor),
+        ListTile(
+          leading: const Icon(Icons.brightness_6_outlined),
+          title: const Text('Tema'),
+          subtitle: const Text(
+            '«Sistema» sigue el modo claro u oscuro del dispositivo',
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          child: SizedBox(
+            width: double.infinity,
+            child: SegmentedButton<ThemeMode>(
+              showSelectedIcon: false,
+              segments: const [
+                ButtonSegment(
+                  value: ThemeMode.system,
+                  icon: Icon(Icons.brightness_auto_outlined),
+                  label: Text('Sistema'),
+                ),
+                ButtonSegment(
+                  value: ThemeMode.light,
+                  icon: Icon(Icons.light_mode_outlined),
+                  label: Text('Claro'),
+                ),
+                ButtonSegment(
+                  value: ThemeMode.dark,
+                  icon: Icon(Icons.dark_mode_outlined),
+                  label: Text('Oscuro'),
+                ),
+              ],
+              selected: {config.tema},
+              onSelectionChanged: (seleccion) =>
+                  config.cambiarTema(seleccion.first),
+            ),
+          ),
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),

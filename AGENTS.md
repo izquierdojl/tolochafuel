@@ -14,7 +14,7 @@ change propuesto.
 
 - Idioma de UI, documentación, commits y conversación: **español**.
 - Referencia de estilo, estructura y lecciones aprendidas: `izquierdojl/tolocharadio`
-  (paleta pine/ochre/moss, tipografía Inter, tema oscuro por defecto + claro).
+  (paleta pine/ochre/moss, tipografía Inter, tema claro y oscuro, siguiendo el del sistema por defecto).
 - Versión inicial en `0.x` hasta que la app sea usable; `1.0.0` lo decide el usuario.
 
 ## 2. Stack tecnológico

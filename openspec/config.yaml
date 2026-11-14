@@ -24,7 +24,7 @@ context: |
   nunca asumir tiempo real.
 
   Estilo visual: paleta y tipografía de izquierdojl/tolocharadio (verdes pine, ocres
-  ochre, moss; Inter; tema oscuro por defecto + claro), centralizada en lib/app/theme.
+  ochre, moss; Inter; tema claro y oscuro, siguiendo el del sistema por defecto), centralizada en lib/app/theme.
 
   Proceso: commits convencionales (feat|fix|docs|infra|refactor|test|chore; BREAKING →
   major) en español. Ramas: main = producción, dev = integración y destino de los PR;
