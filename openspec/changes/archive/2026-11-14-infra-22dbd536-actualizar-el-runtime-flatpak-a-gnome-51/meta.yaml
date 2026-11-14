@@ -1,0 +1,8 @@
+tipo: infra
+id: 22dbd536
+titulo: "Actualizar el runtime Flatpak a GNOME 51"
+autor:
+  nombre: "izquierdojl"
+  email: "izquierdojl@users.noreply.github.com"
+fecha: "2026-11-14T13:35:23+01:00"
+branch: dev
