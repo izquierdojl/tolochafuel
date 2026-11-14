@@ -16,7 +16,6 @@ class RepositorioFalso extends FavoritosRepositorio {
 
   List<Favorito> inicial;
   List<Favorito>? guardados;
-  final List<int> borrados = [];
   bool fallarCarga = false;
   bool fallarGuardado = false;
 
@@ -30,12 +29,6 @@ class RepositorioFalso extends FavoritosRepositorio {
   Future<void> guardar(List<Favorito> favoritos) async {
     if (fallarGuardado) throw Exception('fallo de guardado');
     guardados = favoritos;
-  }
-
-  @override
-  Future<void> borrar(int id) async {
-    if (fallarGuardado) throw Exception('fallo de borrado');
-    borrados.add(id);
   }
 }
 
@@ -124,7 +117,7 @@ void main() {
 
     await controller.alternar(_gasolinera());
     expect(controller.esFavorito(1), isFalse);
-    expect(repositorio.borrados, [1]);
+    expect(repositorio.guardados, isEmpty);
   });
 
   test('si falla el guardado avisa sin perder el cambio en memoria', () async {
@@ -138,6 +131,106 @@ void main() {
 
     expect(controller.esFavorito(1), isTrue);
     expect(controller.aviso, isNotNull);
+  });
+
+  test('mover cambia el orden, persiste y se recupera al recargar', () async {
+    final repositorio = RepositorioFalso(
+      inicial: const [
+        Favorito(id: 1, nombre: 'Primera', lat: 40.4, lng: -3.7),
+        Favorito(id: 2, nombre: 'Segunda', lat: 40.5, lng: -3.8),
+        Favorito(id: 3, nombre: 'Tercera', lat: 40.6, lng: -3.9),
+      ],
+    );
+    final controller = FavoritosController(
+      repositorio: repositorio,
+      api: ApiFalsa(),
+    );
+    await controller.cargar();
+
+    await controller.mover(0, 2);
+
+    expect(controller.favoritos.map((favorito) => favorito.id), [2, 3, 1]);
+    expect(repositorio.guardados!.map((favorito) => favorito.id), [2, 3, 1]);
+
+    final recargado = FavoritosController(
+      repositorio: RepositorioFalso(inicial: repositorio.guardados!),
+      api: ApiFalsa(),
+    );
+    await recargado.cargar();
+
+    expect(recargado.favoritos.map((favorito) => favorito.id), [2, 3, 1]);
+  });
+
+  test('mover ignora índices fuera de rango y posiciones iguales', () async {
+    final repositorio = RepositorioFalso(
+      inicial: const [
+        Favorito(id: 1, nombre: 'Primera', lat: 40.4, lng: -3.7),
+        Favorito(id: 2, nombre: 'Segunda', lat: 40.5, lng: -3.8),
+        Favorito(id: 3, nombre: 'Tercera', lat: 40.6, lng: -3.9),
+      ],
+    );
+    final controller = FavoritosController(
+      repositorio: repositorio,
+      api: ApiFalsa(),
+    );
+    await controller.cargar();
+
+    await controller.mover(-1, 1);
+    await controller.mover(0, 3);
+    await controller.mover(1, 1);
+
+    expect(controller.favoritos.map((favorito) => favorito.id), [1, 2, 3]);
+    expect(repositorio.guardados, isNull);
+  });
+
+  test(
+    'quitar conserva el orden relativo de los favoritos restantes',
+    () async {
+      final repositorio = RepositorioFalso(
+        inicial: const [
+          Favorito(id: 1, nombre: 'Primera', lat: 40.4, lng: -3.7),
+          Favorito(id: 2, nombre: 'Segunda', lat: 40.5, lng: -3.8),
+          Favorito(id: 3, nombre: 'Tercera', lat: 40.6, lng: -3.9),
+        ],
+      );
+      final controller = FavoritosController(
+        repositorio: repositorio,
+        api: ApiFalsa(),
+      );
+      await controller.cargar();
+
+      await controller.quitar(2);
+
+      expect(controller.favoritos.map((favorito) => favorito.id), [1, 3]);
+      expect(repositorio.guardados!.map((favorito) => favorito.id), [1, 3]);
+    },
+  );
+
+  test('si falla el guardado del orden, mantiene el orden y avisa', () async {
+    final repositorio = RepositorioFalso(
+      inicial: const [
+        Favorito(id: 1, nombre: 'Primera', lat: 40.4, lng: -3.7),
+        Favorito(id: 2, nombre: 'Segunda', lat: 40.5, lng: -3.8),
+        Favorito(id: 3, nombre: 'Tercera', lat: 40.6, lng: -3.9),
+      ],
+    )..fallarGuardado = true;
+    final controller = FavoritosController(
+      repositorio: repositorio,
+      api: ApiFalsa(),
+    );
+    await controller.cargar();
+
+    await controller.mover(0, 2);
+
+    expect(controller.favoritos.map((favorito) => favorito.id), [2, 3, 1]);
+    expect(controller.aviso, isNotNull);
+
+    repositorio.fallarGuardado = false;
+    await controller.mover(2, 1);
+
+    expect(controller.favoritos.map((favorito) => favorito.id), [2, 1, 3]);
+    expect(controller.aviso, isNull);
+    expect(repositorio.guardados!.map((favorito) => favorito.id), [2, 1, 3]);
   });
 
   test('carga el detalle de cada favorito y reintenta tras un error', () async {
