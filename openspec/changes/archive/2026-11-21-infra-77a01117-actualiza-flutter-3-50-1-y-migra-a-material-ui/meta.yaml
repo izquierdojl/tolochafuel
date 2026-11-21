@@ -1,0 +1,8 @@
+tipo: infra
+id: 77a01117
+titulo: "Actualiza Flutter 3.50.1 y migra a material_ui"
+autor:
+  nombre: "izquierdojl"
+  email: "izquierdojl@users.noreply.github.com"
+fecha: "2026-11-21T18:19:35+01:00"
+branch: dev

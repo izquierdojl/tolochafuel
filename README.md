@@ -6,7 +6,7 @@ gasolinera y favoritos.
 
 ## Requisitos
 
-- Flutter estable (versión fijada en CI: 3.47.7)
+- Flutter estable (versión fijada en CI: 3.50.1)
 - Dart (incluido con Flutter)
 
 ## Comandos habituales
