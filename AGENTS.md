@@ -21,7 +21,8 @@ change propuesto.
 
 | Capa | Decisión |
 |---|---|
-| Framework | Flutter estable (versión fijada en CI; SDK local en `~/flutter`). |
+| Framework | Flutter estable (versión fijada en CI: 3.50.1; SDK local en `~/flutter`). |
+| UI | `material_ui` (paquete oficial de Material) sobre Flutter; `flutter/material.dart` está obsoleto en 3.50. |
 | Lenguaje | Dart estricto con `flutter_lints`; `dart format` como formateador. |
 | Datos | API pública `https://api.preciosgasolina.es/v1` — **sin backend propio**. HTTP con el paquete `http`. |
 | Ubicación | `geolocator` en Android; en escritorio *fallback* a búsqueda manual por municipio/provincia. |
