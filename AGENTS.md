@@ -51,11 +51,14 @@ decisión explícita del usuario y actualización de este documento.
 - **Caché en memoria** con TTL alineada con la frescura real de la API (se actualiza 2
   veces al día): no se hace polling; las peticiones pesadas se minimizan.
 
-## 4. Datos, límites y licencia
+## 4. Datos, límites y licencias
 
 - Fuente: precios oficiales que las gasolineras comunican al **Ministerio para la
   Transición Ecológica y el Reto Demográfico**, servidos por **Gasolina hoy**
   (`api.preciosgasolina.es`, sin clave, solo lectura).
+- **Licencia del código**: MIT (ver `LICENSE`), decidida por el usuario; cubre el código
+  y los materiales propios del repositorio.
+- **Licencia de los datos**: CC BY 4.0; no se relicencian con el código.
 - Límites de la API: 120 peticiones/min por IP (30/min en consultas pesadas), `limit`
   ≤ 50, radio ≤ 50 km, histórico ≤ 90 días.
 - **Atribución obligatoria y visible** (CC BY 4.0): «Gasolina hoy (preciosgasolina.es),
@@ -177,6 +180,8 @@ decisión explícita del usuario y actualización de este documento.
 7. La gobernanza (`scripts/`, `AGENTS.md`, `openspec/config.yaml`) prevalece sobre los
    skills regenerados por `openspec update`; si un update pisa una regla, se re-aplica aquí.
 8. Versión `0.x` hasta que el usuario decida `1.0.0`.
+9. Código MIT y datos CC BY 4.0: se documentan y muestran por separado; nunca se
+   presenta una licencia única para ambos.
 
 ## 12. Hoja de ruta inmediata
 
