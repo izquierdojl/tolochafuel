@@ -45,6 +45,26 @@ alias y su acceso al histórico.
 
 <img src="assets/capturas/04-favoritas-claro.png" alt="Pantalla Favoritas con tres gasolineras y asas para reordenar" width="320">
 
+### Avisos de precio
+
+Cada favorita tiene una campana con el texto **Avisarme de cambios de precio**. Al
+activarla, la app guarda una foto de los precios actuales y te avisa cuando cambian en una
+actualización posterior. El aviso muestra los carburantes afectados, el precio anterior y
+el nuevo, y la fecha de los datos; al tocarlo se abre la ficha de la estación con sus
+precios, su histórico y los accesos de navegar, favorito y campana.
+
+- Solo se avisa de estaciones favoritas. Si desmarcas una, la campana se apaga y se borra
+  su base de precios; si vuelves a marcarla, empieza apagada.
+- En Android 13 o superior se pide permiso de notificaciones la primera vez. Si lo
+  deniegas, la campana no se activa y la app explica cómo concederlo.
+- La comprobación se hace al abrir o reanudar la app. Los avisos con la app cerrada se
+  añadirán en una entrega posterior.
+- En Windows y Linux se intenta una notificación local; si el entorno no la admite, el
+  aviso aparece dentro de la app. En escritorio no se prometen avisos con la app cerrada.
+- Los datos se actualizan dos veces al día y no son tiempo real. La primera comprobación
+  tras activar la campana solo crea la base y no notifica; si no hay conexión, se crea en
+  la siguiente comprobación correcta.
+
 ## Buscar por municipio o provincia
 
 Si no quieres usar la ubicación, escribe un municipio o una provincia en **Buscar** y
@@ -87,6 +107,10 @@ Los botones de navegación abren la aplicación de mapas del dispositivo (en el 
 Google Maps en el navegador). Si no hay ninguna app de mapas disponible, la app avisa con
 un mensaje en español. Los errores de red o de la API también se muestran con un mensaje
 claro y un botón para reintentar.
+
+Los avisos de precio se activan por favorito con la campana de Favoritas. La app pide
+permiso de notificaciones solo cuando hace falta y no crea cuentas ni envía datos a un
+servidor propio: la comprobación se hace directamente contra la API pública.
 
 ## Privacidad
 

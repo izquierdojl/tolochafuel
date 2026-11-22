@@ -7,7 +7,16 @@ class AliasRepositorio {
 
   Future<Map<int, String>> cargar() async {
     final prefs = await SharedPreferences.getInstance();
-    final texto = prefs.getString(clave);
+    return _desdeTexto(prefs.getString(clave));
+  }
+
+  Future<Map<int, String>> cargarAsync() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    return _desdeTexto(prefs.getString(clave));
+  }
+
+  Map<int, String> _desdeTexto(String? texto) {
     if (texto == null || texto.isEmpty) return {};
     try {
       final decodificado = jsonDecode(texto);

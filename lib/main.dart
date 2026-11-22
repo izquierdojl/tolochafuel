@@ -4,6 +4,9 @@ import 'package:provider/provider.dart';
 import 'app/shell/shell_pantalla.dart';
 import 'app/theme/app_theme.dart';
 import 'features/alias/ui/alias_controller.dart';
+import 'features/avisos/services/navegacion_avisos.dart';
+import 'features/avisos/services/notificaciones_locales.dart';
+import 'features/avisos/ui/avisos_controller.dart';
 import 'features/cercanas/ui/buscar_controller.dart';
 import 'features/cercanas/ui/cercanas_controller.dart';
 import 'features/cercanas/ui/historial_controller.dart';
@@ -13,6 +16,19 @@ import 'features/favoritos/ui/favoritos_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final notificaciones = NotificacionesLocales();
+  final navegacionAvisos = NavegacionAvisosController();
+  await notificaciones.inicializar(
+    alTocar: (payload) {
+      final estacion = parsearEstacionAviso(payload);
+      if (estacion != null) navegacionAvisos.abrir(estacion);
+    },
+  );
+  final estacionInicial = parsearEstacionAviso(
+    await notificaciones.lanzamientoInicial(),
+  );
+  if (estacionInicial != null) navegacionAvisos.abrir(estacionInicial);
+
   final favoritos = FavoritosController();
   final configuracion = ConfiguracionController();
   final alias = AliasController();
@@ -21,11 +37,18 @@ Future<void> main() async {
     configuracion.cargar(),
     alias.cargar(),
   ]);
+  final avisos = AvisosController(
+    favoritos: favoritos,
+    notificaciones: notificaciones,
+  );
+  await avisos.reconciliar();
   runApp(
     TolochaFuelApp(
       favoritos: favoritos,
       configuracion: configuracion,
       alias: alias,
+      avisos: avisos,
+      navegacionAvisos: navegacionAvisos,
     ),
   );
 }
@@ -36,11 +59,15 @@ class TolochaFuelApp extends StatelessWidget {
     required this.favoritos,
     required this.configuracion,
     required this.alias,
+    this.avisos,
+    this.navegacionAvisos,
   });
 
   final FavoritosController favoritos;
   final ConfiguracionController configuracion;
   final AliasController alias;
+  final AvisosController? avisos;
+  final NavegacionAvisosController? navegacionAvisos;
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +84,9 @@ class TolochaFuelApp extends StatelessWidget {
         ChangeNotifierProvider.value(value: favoritos),
         ChangeNotifierProvider.value(value: alias),
         ChangeNotifierProvider.value(value: configuracion),
+        if (avisos != null) ChangeNotifierProvider.value(value: avisos!),
+        if (navegacionAvisos != null)
+          ChangeNotifierProvider.value(value: navegacionAvisos!),
       ],
       child: Consumer<ConfiguracionController>(
         builder: (context, config, _) => MaterialApp(

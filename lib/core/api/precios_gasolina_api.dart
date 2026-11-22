@@ -145,10 +145,21 @@ class PreciosGasolinaApi {
       ..._productosDe(data['products']),
     ];
 
+    final nombre = data['name'];
+    final direccion = data['address'];
     return DetalleEstacion(
       productos: productos,
       proximaActualizacion: meta.proximaActualizacion,
       meta: meta,
+      nombre: nombre is String && nombre.trim().isNotEmpty
+          ? nombre.trim()
+          : null,
+      direccion: direccion is String && direccion.trim().isNotEmpty
+          ? direccion.trim()
+          : null,
+      lat: aDouble(data['lat']),
+      lng: aDouble(data['lng']),
+      urlWeb: data['web_url'] as String?,
     );
   }
 

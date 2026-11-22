@@ -349,4 +349,74 @@ void main() {
     expect(controller.meta, isNotNull);
     expect(controller.meta!.ultimaActualizacion, isNotNull);
   });
+
+  test('marcarAviso activa y desactiva conservando el orden', () async {
+    final repositorio = RepositorioFalso(
+      inicial: const [
+        Favorito(id: 1, nombre: 'Primera', lat: 40.4, lng: -3.7),
+        Favorito(id: 2, nombre: 'Segunda', lat: 40.5, lng: -3.8),
+      ],
+    );
+    final controller = FavoritosController(
+      repositorio: repositorio,
+      api: ApiFalsa(),
+    );
+    await controller.cargar();
+
+    expect(await controller.marcarAviso(2, true), isTrue);
+
+    expect(controller.avisosActivos(2), isTrue);
+    expect(controller.favoritos.map((favorito) => favorito.id), [1, 2]);
+    expect(repositorio.guardados![1].avisosPrecio, isTrue);
+
+    expect(await controller.marcarAviso(2, false), isTrue);
+
+    expect(controller.avisosActivos(2), isFalse);
+    expect(repositorio.guardados![1].avisosPrecio, isFalse);
+  });
+
+  test('marcarAviso ignora una estación que no es favorita', () async {
+    final repositorio = RepositorioFalso();
+    final controller = FavoritosController(
+      repositorio: repositorio,
+      api: ApiFalsa(),
+    );
+    await controller.cargar();
+
+    expect(await controller.marcarAviso(9, true), isFalse);
+    expect(controller.avisosActivos(9), isFalse);
+    expect(repositorio.guardados, isNull);
+  });
+
+  test('si falla el guardado del aviso se mantiene en la sesión', () async {
+    final repositorio = RepositorioFalso(
+      inicial: const [Favorito(id: 1, nombre: 'Primera', lat: 40.4, lng: -3.7)],
+    )..fallarGuardado = true;
+    final controller = FavoritosController(
+      repositorio: repositorio,
+      api: ApiFalsa(),
+    );
+    await controller.cargar();
+
+    await controller.marcarAviso(1, true);
+
+    expect(controller.avisosActivos(1), isTrue);
+    expect(controller.aviso, isNotNull);
+  });
+
+  test('volver a marcar un favorito empieza con la campana apagada', () async {
+    final repositorio = RepositorioFalso();
+    final controller = FavoritosController(
+      repositorio: repositorio,
+      api: ApiFalsa(),
+    );
+    await controller.cargar();
+
+    await controller.alternar(_gasolinera());
+    await controller.marcarAviso(1, true);
+    await controller.quitar(1);
+    await controller.alternar(_gasolinera());
+
+    expect(controller.avisosActivos(1), isFalse);
+  });
 }

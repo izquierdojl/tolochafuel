@@ -9,4 +9,11 @@ void main() {
 
     expect(manifiesto, contains('android.permission.INTERNET'));
   });
+
+  test('el manifiesto principal declara el permiso de notificaciones', () {
+    final manifiesto = File('android/app/src/main/AndroidManifest.xml')
+        .readAsStringSync();
+
+    expect(manifiesto, contains('android.permission.POST_NOTIFICATIONS'));
+  });
 }

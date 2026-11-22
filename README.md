@@ -23,6 +23,8 @@ quedan en tu dispositivo.
 - **Ver las gasolineras cercanas** ordenadas por distancia, con precios por carburante y
   el aviso de 24 horas.
 - **Guardar favoritas** y ordenarlas como quieras; conservan su precio y su histórico.
+- **Activar avisos de precio** en tus favoritas y recibir una notificación cuando cambien,
+  con acceso directo a la ficha de la estación.
 - **Buscar por municipio o provincia** cuando no quieras compartir la ubicación, también
   en el escritorio.
 - **Comparar las más económicas** por gasolina 95, 98, gasóleo A, gasóleo premium, GLP,

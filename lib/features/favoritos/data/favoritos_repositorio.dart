@@ -9,7 +9,16 @@ class FavoritosRepositorio {
 
   Future<List<Favorito>> cargar() async {
     final prefs = await SharedPreferences.getInstance();
-    final texto = prefs.getString(clave);
+    return _desdeTexto(prefs.getString(clave));
+  }
+
+  Future<List<Favorito>> cargarAsync() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    return _desdeTexto(prefs.getString(clave));
+  }
+
+  List<Favorito> _desdeTexto(String? texto) {
     if (texto == null || texto.isEmpty) return const [];
     try {
       final lista = jsonDecode(texto);

@@ -49,4 +49,12 @@ void main() {
     });
     expect(await AliasRepositorio().cargar(), {7: 'Válida'});
   });
+
+  test('cargarAsync devuelve los alias guardados', () async {
+    await AliasRepositorio().guardar({1: 'La de la rotonda'});
+
+    final recargados = await AliasRepositorio().cargarAsync();
+
+    expect(recargados, {1: 'La de la rotonda'});
+  });
 }
