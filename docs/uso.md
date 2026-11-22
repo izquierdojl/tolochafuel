@@ -47,8 +47,10 @@ alias y su acceso al histórico.
 
 ### Avisos de precio
 
-Cada favorita tiene una campana con el texto **Avisarme de cambios de precio**. Al
-activarla, la app guarda una foto de los precios actuales y te avisa cuando cambian en una
+Cada favorita tiene un icono de campana junto al corazón, sin una fila adicional en la
+tarjeta. La campana se ve rellena cuando el aviso está activo y contorneada cuando está
+apagado, con el mismo tratamiento que el corazón. Al activarla, la app guarda una foto de
+los precios actuales, muestra un diálogo con el resultado y te avisa cuando cambian en una
 actualización posterior. El aviso muestra los carburantes afectados, el precio anterior y
 el nuevo, y la fecha de los datos; al tocarlo se abre la ficha de la estación con sus
 precios, su histórico y los accesos de navegar, favorito y campana.

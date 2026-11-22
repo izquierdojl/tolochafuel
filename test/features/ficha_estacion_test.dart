@@ -214,6 +214,15 @@ void main() {
     await tester.tap(find.byIcon(Icons.notifications_none));
     await tester.pumpAndSettle();
 
+    expect(find.text('Avisos activados'), findsOneWidget);
+    expect(
+      find.textContaining('Los datos se actualizan 2 veces al día'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Entendido'));
+    await tester.pumpAndSettle();
+
     expect(favoritos.avisosActivos(7), isTrue);
     expect(find.byIcon(Icons.notifications_active_outlined), findsOneWidget);
   });
