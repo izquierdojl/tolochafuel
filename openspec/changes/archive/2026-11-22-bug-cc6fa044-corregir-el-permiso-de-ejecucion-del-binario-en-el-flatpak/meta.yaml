@@ -1,0 +1,8 @@
+tipo: bug
+id: cc6fa044
+titulo: "Corregir el permiso de ejecución del binario en el Flatpak"
+autor:
+  nombre: "izquierdojl"
+  email: "izquierdojl@users.noreply.github.com"
+fecha: "2026-11-22T01:47:15+01:00"
+branch: dev

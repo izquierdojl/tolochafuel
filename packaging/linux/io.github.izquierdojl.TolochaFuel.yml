@@ -16,6 +16,7 @@ modules:
     build-commands:
       - mkdir -p /app/bin
       - cp -r tolochafuel data lib /app/bin/
+      - chmod +x /app/bin/tolochafuel
       - install -Dm644 io.github.izquierdojl.TolochaFuel.desktop /app/share/applications/io.github.izquierdojl.TolochaFuel.desktop
       - install -Dm644 icon.png /app/share/icons/hicolor/512x512/apps/io.github.izquierdojl.TolochaFuel.png
     sources:

@@ -135,7 +135,7 @@ void main() {
     expect(find.text('Buscar'), findsOneWidget);
   });
 
-  testWidgets('Acerca de muestra atribución y licencia CC BY 4.0', (
+  testWidgets('Acerca de muestra atribución y licencias CC BY 4.0 y MIT', (
     tester,
   ) async {
     final controller = ConfiguracionController(repositorio: RepositorioFalso());
@@ -152,6 +152,8 @@ void main() {
     expect(find.textContaining('Ministerio'), findsWidgets);
     expect(find.text(MetaDatos.atribucionPorDefecto), findsOneWidget);
     expect(find.textContaining('CC BY 4.0'), findsOneWidget);
+    expect(find.text('Licencia MIT del código'), findsOneWidget);
+    expect(find.textContaining('código'), findsWidgets);
     expect(find.text('Código en GitHub'), findsOneWidget);
   });
 }

@@ -7,6 +7,7 @@ class AcercaDePantalla extends StatelessWidget {
   const AcercaDePantalla({super.key});
 
   static const _urlLicencia = 'https://creativecommons.org/licenses/by/4.0/';
+  static const _urlLicenciaMit = 'https://opensource.org/license/mit';
   static const _urlRepositorio = 'https://github.com/izquierdojl/tolochafuel';
 
   Future<void> _abrirEnlace(String url) async {
@@ -59,6 +60,16 @@ class AcercaDePantalla extends StatelessWidget {
               'Atribución 4.0).',
             ),
             onTap: () => _abrirEnlace(_urlLicencia),
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(Icons.balance, color: tema.colorScheme.primary),
+            title: const Text('Licencia MIT del código'),
+            subtitle: const Text(
+              'El código de TolochaFuel es abierto: puedes usarlo, '
+              'modificarlo y distribuirlo citando la autoría.',
+            ),
+            onTap: () => _abrirEnlace(_urlLicenciaMit),
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
