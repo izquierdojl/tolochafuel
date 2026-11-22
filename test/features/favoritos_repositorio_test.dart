@@ -61,4 +61,47 @@ void main() {
 
     expect(recargados.map((favorito) => favorito.id), [3, 1, 2]);
   });
+
+  test('guarda el estado de aviso y tolera favoritos antiguos', () async {
+    await FavoritosRepositorio().guardar(const [
+      Favorito(
+        id: 1,
+        nombre: 'Con aviso',
+        lat: 40.4,
+        lng: -3.7,
+        avisosPrecio: true,
+      ),
+      Favorito(id: 2, nombre: 'Sin aviso', lat: 40.5, lng: -3.8),
+    ]);
+
+    final recargados = await FavoritosRepositorio().cargar();
+
+    expect(recargados[0].avisosPrecio, isTrue);
+    expect(recargados[1].avisosPrecio, isFalse);
+
+    SharedPreferences.setMockInitialValues({
+      FavoritosRepositorio.clave:
+          '[{"id": 1, "nombre": "Antigua", "lat": 40.4, "lng": -3.7}]',
+    });
+    final antiguos = await FavoritosRepositorio().cargar();
+
+    expect(antiguos.single.avisosPrecio, isFalse);
+  });
+
+  test('cargarAsync devuelve los mismos datos que cargar', () async {
+    await FavoritosRepositorio().guardar(const [
+      Favorito(
+        id: 1,
+        nombre: 'Con aviso',
+        lat: 40.4,
+        lng: -3.7,
+        avisosPrecio: true,
+      ),
+    ]);
+
+    final recargados = await FavoritosRepositorio().cargarAsync();
+
+    expect(recargados.single.id, 1);
+    expect(recargados.single.avisosPrecio, isTrue);
+  });
 }

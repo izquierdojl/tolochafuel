@@ -31,6 +31,9 @@ class FavoritosController extends ChangeNotifier {
 
   bool esFavorito(int id) => favoritos.any((favorito) => favorito.id == id);
 
+  bool avisosActivos(int id) =>
+      favoritos.any((favorito) => favorito.id == id && favorito.avisosPrecio);
+
   DetalleEstacion? detalle(int id) => _detalles[id];
 
   bool cargandoDetalle(int id) => _cargandoDetalle.contains(id);
@@ -64,6 +67,18 @@ class FavoritosController extends ChangeNotifier {
     await cargarDetalle(gasolinera.id);
   }
 
+  Future<bool> marcarAviso(int id, bool activo) async {
+    final indice = favoritos.indexWhere((favorito) => favorito.id == id);
+    if (indice < 0) return false;
+    if (favoritos[indice].avisosPrecio == activo) return true;
+    final lista = List<Favorito>.of(favoritos);
+    lista[indice] = lista[indice].copyWith(avisosPrecio: activo);
+    favoritos = lista;
+    notifyListeners();
+    await _persistir();
+    return true;
+  }
+
   Future<void> mover(int desde, int hasta) async {
     if (favoritos.length < 2) return;
     if (desde < 0 || desde >= favoritos.length) return;
@@ -82,7 +97,6 @@ class FavoritosController extends ChangeNotifier {
       for (final favorito in favoritos)
         if (favorito.id != id) favorito,
     ];
-    _detalles.remove(id);
     _erroresDetalle.remove(id);
     notifyListeners();
     await _persistir();
@@ -111,9 +125,13 @@ class FavoritosController extends ChangeNotifier {
     }
   }
 
-  Future<void> cargarDetalle(int id) async {
+  Future<void> cargarDetalle(int id, {bool forzar = false}) async {
     final enCache = _detalles[id];
-    if (enCache != null && !_caducado(enCache.proximaActualizacion)) return;
+    if (!forzar &&
+        enCache != null &&
+        !_caducado(enCache.proximaActualizacion)) {
+      return;
+    }
     if (!_consultando.add(id)) return;
     _cargandoDetalle.add(id);
     _erroresDetalle.remove(id);

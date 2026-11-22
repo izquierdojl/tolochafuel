@@ -5,18 +5,26 @@ import 'package:tolochafuel/app/shell/seccion_app.dart';
 import 'package:tolochafuel/app/shell/shell_controller.dart';
 import 'package:tolochafuel/app/shell/shell_pantalla.dart';
 import 'package:tolochafuel/core/api/precios_gasolina_api.dart';
+import 'package:tolochafuel/core/models/detalle_estacion.dart';
 import 'package:tolochafuel/core/models/gasolinera.dart';
+import 'package:tolochafuel/core/models/historico_estacion.dart';
 import 'package:tolochafuel/core/models/meta_datos.dart';
 import 'package:tolochafuel/core/models/producto_precio.dart';
 import 'package:tolochafuel/core/services/ubicacion.dart';
 import 'package:tolochafuel/features/alias/ui/alias_controller.dart';
+import 'package:tolochafuel/features/avisos/data/aviso_notificacion.dart';
+import 'package:tolochafuel/features/avisos/services/navegacion_avisos.dart';
+import 'package:tolochafuel/features/avisos/ui/ficha_estacion_sheet.dart';
 import 'package:tolochafuel/features/cercanas/data/cercanas_repositorio.dart';
 import 'package:tolochafuel/features/cercanas/ui/buscar_controller.dart';
 import 'package:tolochafuel/features/cercanas/ui/cercanas_controller.dart';
+import 'package:tolochafuel/features/cercanas/ui/historial_controller.dart';
 import 'package:tolochafuel/features/cercanas/ui/mas_economicas_controller.dart';
 import 'package:tolochafuel/features/cercanas/ui/mas_economicas_pantalla.dart';
 import 'package:tolochafuel/features/configuracion/data/configuracion_repositorio.dart';
 import 'package:tolochafuel/features/configuracion/ui/configuracion_controller.dart';
+import 'package:tolochafuel/features/favoritos/data/favorito.dart';
+import 'package:tolochafuel/features/favoritos/data/favoritos_repositorio.dart';
 import 'package:tolochafuel/features/favoritos/ui/favoritos_controller.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -135,6 +143,76 @@ CercanasController _cercanas(ConfiguracionController configuracion) =>
       ),
     );
 
+class RepositorioFavoritosFalso extends FavoritosRepositorio {
+  @override
+  Future<List<Favorito>> cargar() async => const [];
+
+  @override
+  Future<void> guardar(List<Favorito> favoritos) async {}
+}
+
+class ApiFichaFalsa extends PreciosGasolinaApi {
+  @override
+  Future<DetalleEstacion> detalle(int id) async => DetalleEstacion(
+    productos: const [
+      ProductoPrecio(
+        idApi: 'gasoline_95',
+        etiqueta: 'Gasolina 95',
+        unidad: 'L',
+        precio: 1.729,
+      ),
+    ],
+    nombre: 'Ballenoil',
+    direccion: 'Calle Mayor, 1',
+    lat: 40.4,
+    lng: -3.7,
+    meta: MetaDatos(
+      atribucion: MetaDatos.atribucionPorDefecto,
+      ultimaActualizacion: DateTime.utc(2026, 11, 22, 20),
+    ),
+  );
+}
+
+class ApiHistoricoFalsa extends PreciosGasolinaApi {
+  @override
+  Future<HistoricoEstacion> historico(int id, {int days = 5}) async =>
+      HistoricoEstacion(
+        series: [
+          SerieCarburante(
+            idApi: 'gasoline_95',
+            puntos: [
+              PuntoPrecio(fecha: DateTime(2026, 11, 21), precio: 1.729),
+              PuntoPrecio(fecha: DateTime(2026, 11, 22), precio: 1.729),
+            ],
+          ),
+        ],
+      );
+}
+
+Widget _appConFicha({
+  required ConfiguracionController configuracion,
+  required CercanasController cercanas,
+  required FavoritosController favoritos,
+  required HistorialController historial,
+  required NavegacionAvisosController navegacion,
+}) => MultiProvider(
+  providers: [
+    ChangeNotifierProvider.value(value: configuracion),
+    ChangeNotifierProvider.value(value: cercanas),
+    ChangeNotifierProvider.value(value: favoritos),
+    ChangeNotifierProvider(create: (_) => AliasController()),
+    ChangeNotifierProvider.value(value: historial),
+    ChangeNotifierProvider.value(value: navegacion),
+    ChangeNotifierProvider(create: (_) => BuscarController()),
+    ChangeNotifierProvider(
+      create: (_) => MasEconomicasController(
+        ubicacion: UbicacionFalsa(ResultadoUbicacion.noSoportada),
+      ),
+    ),
+  ],
+  child: const MaterialApp(home: ShellPantalla()),
+);
+
 void main() {
   testWidgets('el menú abre, resalta la sección activa y navega', (
     tester,
@@ -243,5 +321,36 @@ void main() {
     expect(shell.seccion, SeccionApp.buscar);
     expect(shell.visitada(SeccionApp.buscar), isTrue);
     expect(shell.visitada(SeccionApp.cercanas), isTrue);
+  });
+
+  testWidgets('abre la ficha de una estación pendiente de notificación', (
+    tester,
+  ) async {
+    final configuracion = ConfiguracionController(
+      repositorio: RepositorioConfigFalso(),
+    );
+    await configuracion.cargar();
+    final favoritos = FavoritosController(
+      repositorio: RepositorioFavoritosFalso(),
+      api: ApiFichaFalsa(),
+    );
+    await favoritos.cargar();
+    final navegacion = NavegacionAvisosController()
+      ..abrir(const EstacionAviso(id: 7, nombre: 'Ballenoil'));
+
+    await tester.pumpWidget(
+      _appConFicha(
+        configuracion: configuracion,
+        cercanas: _cercanas(configuracion),
+        favoritos: favoritos,
+        historial: HistorialController(api: ApiHistoricoFalsa()),
+        navegacion: navegacion,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(FichaEstacionSheet), findsOneWidget);
+    expect(find.text('Gasolina 95'), findsWidgets);
+    expect(find.text('Calle Mayor, 1'), findsOneWidget);
   });
 }

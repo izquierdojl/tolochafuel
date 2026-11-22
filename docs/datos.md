@@ -34,6 +34,20 @@ El pie de frescura aparece en Cercanas, Favoritas, Más económicas y Buscar. La
 hace *polling*: cachea las respuestas en memoria y las renueva cuando la API indica una
 próxima actualización o cuando el usuario reintenta.
 
+## Avisos de cambio de precio
+
+Los avisos por favorito usan los mismos metadatos: al activar la campana se guarda una
+base de precios; al abrir o reanudar la app se comprueba si `meta.next_update` ya pasó y
+se lee `meta.last_updated` con una sola ficha. Solo si cambió se consultan las fichas de
+las favoritas con aviso, y el aviso muestra la fecha de los datos y el aviso de `stale`
+cuando corresponde. La primera comprobación no notifica: solo crea la base.
+
+En Android, la comprobación de fondo usa `meta.next_update` para programar el siguiente
+intento con WorkManager, con una restricción de red y sin alarmas exactas. Tras cada
+comprobación se reprograma con la fecha nueva; si no hay fecha, se usa un respaldo de 12
+horas. Doze o la batería pueden retrasarla. No se hace *polling* ni se consultan estaciones
+sin campana.
+
 ## Endpoints que usa la app
 
 Todas las peticiones van a `https://api.preciosgasolina.es` y reciben un objeto con
@@ -71,8 +85,10 @@ La app respeta los límites publicados:
 - Histórico máximo de **90 días**.
 
 Por eso las listas cargan como mucho 20 estaciones y las fichas se piden en lotes
-pequeños, en lugar de lanzar una petición por estación a la vez. Si la API responde con
-error o se supera el límite, la app muestra un mensaje en español y ofrece reintentar.
+pequeños, en lugar de lanzar una petición por estación a la vez. Los avisos usan el mismo
+criterio: concurrencia 4, una sola petición cuando no hay datos nuevos y ninguna cuando no
+hay campanas activas. Si la API responde con error o se supera el límite, la app muestra
+un mensaje en español y ofrece reintentar.
 
 ## Atribución y licencia
 

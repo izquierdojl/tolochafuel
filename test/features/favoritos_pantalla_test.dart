@@ -14,12 +14,20 @@ import 'package:tolochafuel/core/models/historico_estacion.dart';
 import 'package:tolochafuel/core/models/meta_datos.dart';
 import 'package:tolochafuel/core/models/producto_precio.dart';
 import 'package:tolochafuel/features/alias/ui/alias_controller.dart';
+import 'package:tolochafuel/features/avisos/data/aviso_notificacion.dart';
+import 'package:tolochafuel/features/avisos/data/avisos_repositorio.dart';
+import 'package:tolochafuel/features/avisos/services/comprobador_avisos.dart';
+import 'package:tolochafuel/features/avisos/services/notificaciones_servicio.dart';
+import 'package:tolochafuel/features/avisos/services/programador_avisos.dart';
+import 'package:tolochafuel/features/avisos/ui/avisos_controller.dart';
 import 'package:tolochafuel/features/cercanas/ui/historial_controller.dart';
 import 'package:tolochafuel/features/cercanas/ui/widgets/tarjeta_gasolinera.dart';
 import 'package:tolochafuel/features/favoritos/data/favorito.dart';
 import 'package:tolochafuel/features/favoritos/data/favoritos_repositorio.dart';
 import 'package:tolochafuel/features/favoritos/ui/favoritos_controller.dart';
 import 'package:tolochafuel/features/favoritos/ui/favoritos_pantalla.dart';
+
+import '../support/almacen_memoria.dart';
 
 class ApiFalsa extends PreciosGasolinaApi {
   ApiFalsa({Map<int, DetalleEstacion>? detalles, Map<int, Object>? errores})
@@ -61,6 +69,51 @@ class RepositorioFalso extends FavoritosRepositorio {
   }
 }
 
+class ComprobadorFalso implements ComprobadorAvisos {
+  @override
+  Future<ResultadoComprobacion> comprobar() async =>
+      const ResultadoComprobacion();
+
+  @override
+  Future<ResultadoBase> crearBase(int estacionId) async => ResultadoBase.creada;
+}
+
+class NotificacionesFalsas implements NotificacionesServicio {
+  bool permiso = true;
+  bool habilitadas = true;
+
+  @override
+  Future<void> cancelar(int id) async {}
+
+  @override
+  Future<void> cancelarTodas() async {}
+
+  @override
+  Future<bool> estanHabilitadas() async => habilitadas;
+
+  @override
+  Future<void> inicializar({
+    required void Function(String? payload) alTocar,
+  }) async {}
+
+  @override
+  Future<String?> lanzamientoInicial() async => null;
+
+  @override
+  Future<bool> mostrar(AvisoNotificacion aviso) async => true;
+
+  @override
+  Future<bool> solicitarPermiso() async => permiso;
+}
+
+class ProgramadorFalso implements ProgramadorAvisos {
+  @override
+  Future<void> programar(DateTime? proxima) async {}
+
+  @override
+  Future<void> cancelar() async {}
+}
+
 class ApiHistoricoFalsa extends PreciosGasolinaApi {
   @override
   Future<HistoricoEstacion> historico(int id, {int days = 5}) async =>
@@ -99,16 +152,32 @@ Gasolinera _gasolinera({
 Widget _pantalla(
   FavoritosController controller, {
   HistorialController? historial,
+  AvisosController? avisos,
 }) => MultiProvider(
   providers: [
     ChangeNotifierProvider.value(value: controller),
     ChangeNotifierProvider(create: (_) => AliasController()),
     if (historial != null) ChangeNotifierProvider.value(value: historial),
+    if (avisos != null) ChangeNotifierProvider.value(value: avisos),
   ],
   child: MaterialApp(
     theme: AppTheme.oscuro,
     home: const Scaffold(body: FavoritosPantalla()),
   ),
+);
+
+AvisosController _crearAvisos(
+  FavoritosController favoritos, {
+  bool permiso = true,
+  bool habilitadas = true,
+}) => AvisosController(
+  favoritos: favoritos,
+  comprobador: ComprobadorFalso(),
+  repositorio: AvisosRepositorio(almacen: AlmacenMemoria()),
+  notificaciones: NotificacionesFalsas()
+    ..permiso = permiso
+    ..habilitadas = habilitadas,
+  programador: ProgramadorFalso(),
 );
 
 void main() {
@@ -429,5 +498,67 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(LinearProgressIndicator), findsNothing);
+  });
+
+  testWidgets('muestra la campana y activa el aviso', (tester) async {
+    final controller = FavoritosController(api: ApiFalsa());
+    await controller.cargar();
+    await controller.alternar(_gasolinera());
+    final avisos = _crearAvisos(controller);
+    addTearDown(avisos.dispose);
+
+    await tester.pumpWidget(_pantalla(controller, avisos: avisos));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Avisarme de cambios de precio'), findsOneWidget);
+    expect(find.byType(SwitchListTile), findsOneWidget);
+    expect(
+      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+      isFalse,
+    );
+
+    await tester.tap(find.byType(SwitchListTile));
+    await tester.pumpAndSettle();
+
+    expect(controller.avisosActivos(3194), isTrue);
+    expect(
+      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+      isTrue,
+    );
+  });
+
+  testWidgets('no activa la campana si se deniega el permiso', (tester) async {
+    final controller = FavoritosController(api: ApiFalsa());
+    await controller.cargar();
+    await controller.alternar(_gasolinera());
+    final avisos = _crearAvisos(controller, permiso: false);
+    addTearDown(avisos.dispose);
+
+    await tester.pumpWidget(_pantalla(controller, avisos: avisos));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(SwitchListTile));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(controller.avisosActivos(3194), isFalse);
+    expect(find.textContaining('Para recibir avisos'), findsOneWidget);
+  });
+
+  testWidgets('desmarcar el favorito oculta la campana', (tester) async {
+    final controller = FavoritosController(api: ApiFalsa());
+    await controller.cargar();
+    await controller.alternar(_gasolinera());
+    final avisos = _crearAvisos(controller);
+    addTearDown(avisos.dispose);
+
+    await tester.pumpWidget(_pantalla(controller, avisos: avisos));
+    await tester.pumpAndSettle();
+
+    await controller.quitar(3194);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Aún no tienes gasolineras favoritas'), findsOneWidget);
+    expect(find.byType(SwitchListTile), findsNothing);
   });
 }

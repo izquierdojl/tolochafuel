@@ -8,6 +8,7 @@ class Favorito {
     required this.lat,
     required this.lng,
     this.direccion,
+    this.avisosPrecio = false,
   });
 
   final int id;
@@ -15,6 +16,7 @@ class Favorito {
   final double lat;
   final double lng;
   final String? direccion;
+  final bool avisosPrecio;
 
   factory Favorito.desdeGasolinera(Gasolinera gasolinera) => Favorito(
     id: gasolinera.id,
@@ -41,8 +43,18 @@ class Favorito {
       direccion: direccion is String && direccion.trim().isNotEmpty
           ? direccion.trim()
           : null,
+      avisosPrecio: json['avisosPrecio'] == true,
     );
   }
+
+  Favorito copyWith({bool? avisosPrecio}) => Favorito(
+    id: id,
+    nombre: nombre,
+    lat: lat,
+    lng: lng,
+    direccion: direccion,
+    avisosPrecio: avisosPrecio ?? this.avisosPrecio,
+  );
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -50,6 +62,7 @@ class Favorito {
     'lat': lat,
     'lng': lng,
     'direccion': direccion,
+    'avisosPrecio': avisosPrecio,
   };
 
   Gasolinera aGasolinera() => Gasolinera(

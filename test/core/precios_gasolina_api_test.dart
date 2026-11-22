@@ -212,6 +212,10 @@ void main() {
       expect(detalle.proximaActualizacion, isNotNull);
       expect(detalle.meta, isNotNull);
       expect(detalle.meta!.ultimaActualizacion, isNotNull);
+      expect(detalle.nombre, 'Ballenoil Segovia');
+      expect(detalle.lat, closeTo(40.41025, 0.0001));
+      expect(detalle.lng, closeTo(-3.717528, 0.0001));
+      expect(detalle.urlWeb, contains('ballenoil-3213'));
     },
   );
 
