@@ -12,10 +12,12 @@ DIST="$RAIZ/dist"
 APP_ID="io.github.izquierdojl.TolochaFuel"
 ICONO="$RAIZ/assets/branding/app_icon.png"
 
-if [ ! -x "$BUNDLE/tolochafuel" ]; then
+if [ ! -f "$BUNDLE/tolochafuel" ]; then
   echo "No existe el bundle ($BUNDLE); ejecuta antes: flutter build linux --release" >&2
   exit 1
 fi
+
+chmod +x "$BUNDLE/tolochafuel"
 
 rm -rf "$DIST"
 mkdir -p "$DIST"
