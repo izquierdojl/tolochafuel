@@ -47,7 +47,7 @@ lib/
 | `cercanas/data` | Repositorio de listados, fichas, histórico y búsqueda; caché en memoria |
 | `cercanas/ui` | Cercanas, Buscar, Más económicas, histórico y widgets de tarjeta y estados |
 | `favoritos` | Persistencia local de favoritos y su orden; pantalla Favoritas |
-| `avisos` | Campana por favorito, base de precios, comprobador, notificaciones locales y ficha desde el aviso |
+| `avisos` | Campana por favorito, base de precios, comprobador, notificaciones locales, ficha desde el aviso y trabajo de fondo |
 | `configuracion` | Tema, radio, pantalla inicial, criterio y «Acerca de» |
 | `alias` | Nombres locales por estación y su diálogo |
 
@@ -110,8 +110,13 @@ favorito y la campana antes de publicar. `NotificacionesServicio` envuelve
 `flutter_local_notifications` y permite usar un doble en los tests. El toque en el aviso
 se guarda como una estación pendiente y `ShellPantalla` abre `FichaEstacionSheet`.
 
-La comprobación actual es al abrir o reanudar la app, alineada con `meta.next_update`.
-El trabajo con la app cerrada mediante WorkManager se añadirá en un change posterior.
+En Android, `workmanager` programa una tarea one-off después de `meta.next_update`
+(margen de 5 minutos, mínimo 15) con restricción de red. Un isolate de fondo reutiliza el
+comprobador y el bloqueo, publica la notificación y reprograma la siguiente tarea. Al
+abrir o reanudar, `AvisosController.reconciliar()` cancela o reprograma según las campanas
+activas. No se usan alarmas exactas: Doze o la batería pueden retrasar el aviso. Forzar la
+detención cancela la tarea hasta reabrir la app. En Windows y Linux se mantiene la
+comprobación al abrir o reanudar.
 
 ## Servicios de plataforma
 
@@ -122,6 +127,9 @@ El trabajo con la app cerrada mediante WorkManager se añadirá en un change pos
 - **Notificaciones**: `flutter_local_notifications` en Android, Windows y Linux; el canal
   se llama «Avisos de precio». En Android se pide `POST_NOTIFICATIONS` al activar la
   primera campana.
+- **Segundo plano**: `workmanager` en Android con una tarea one-off ligada a
+  `meta.next_update`, restricción de red y política de reemplazo. En Windows y Linux no se
+  registra trabajo de fondo.
 - **Tema**: claro u oscuro, siguiendo el sistema por defecto; el cambio se aplica al
   instante.
 

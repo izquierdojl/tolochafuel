@@ -316,7 +316,8 @@ void main() {
 
     expect(resultado.omitida, isTrue);
     expect(api.consultas, 0);
-    expect(programador.programaciones, 0);
+    expect(programador.programaciones, 1);
+    expect(programador.programada, DateTime.utc(2026, 11, 22, 20));
   });
 
   test('establece la base que falta aunque los datos no cambiaran', () async {
@@ -535,5 +536,6 @@ void main() {
 
     expect(resultado.omitida, isTrue);
     expect(api.consultas, 0);
+    expect(programador.programada, ahora.add(const Duration(minutes: 15)));
   });
 }

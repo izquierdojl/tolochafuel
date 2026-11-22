@@ -69,10 +69,12 @@ class ComprobadorAvisosApi implements ComprobadorAvisos {
     );
     final proxima = estado.proximaComprobacion?.toUtc();
     if (!faltaBase && proxima != null && ahora.isBefore(proxima)) {
+      await _programador.programar(proxima);
       return ResultadoComprobacion.vacio;
     }
 
     if (!await _avisos.adquirirBloqueo(ahora)) {
+      await _programador.programar(ahora.add(const Duration(minutes: 15)));
       return ResultadoComprobacion.vacio;
     }
 

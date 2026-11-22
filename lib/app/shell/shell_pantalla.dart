@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
@@ -46,7 +48,10 @@ class _ShellPantallaState extends State<ShellPantalla>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) return;
-    context.read<AvisosController?>()?.comprobarSiToca();
+    final avisos = context.read<AvisosController?>();
+    if (avisos == null) return;
+    unawaited(avisos.reconciliar());
+    unawaited(avisos.comprobarSiToca());
   }
 
   @override

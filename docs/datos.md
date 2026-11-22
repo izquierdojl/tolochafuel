@@ -42,9 +42,11 @@ se lee `meta.last_updated` con una sola ficha. Solo si cambió se consultan las 
 las favoritas con aviso, y el aviso muestra la fecha de los datos y el aviso de `stale`
 cuando corresponde. La primera comprobación no notifica: solo crea la base.
 
-La comprobación con la app cerrada se añadirá en un change posterior y usará
-`meta.next_update` para programar el siguiente intento, sin alarmas exactas. No se hace
-*polling* ni se consultan estaciones sin campana.
+En Android, la comprobación de fondo usa `meta.next_update` para programar el siguiente
+intento con WorkManager, con una restricción de red y sin alarmas exactas. Tras cada
+comprobación se reprograma con la fecha nueva; si no hay fecha, se usa un respaldo de 12
+horas. Doze o la batería pueden retrasarla. No se hace *polling* ni se consultan estaciones
+sin campana.
 
 ## Endpoints que usa la app
 

@@ -6,6 +6,8 @@ import 'app/theme/app_theme.dart';
 import 'features/alias/ui/alias_controller.dart';
 import 'features/avisos/services/navegacion_avisos.dart';
 import 'features/avisos/services/notificaciones_locales.dart';
+import 'features/avisos/services/programador_workmanager.dart';
+import 'features/avisos/services/trabajo_fondo.dart';
 import 'features/avisos/ui/avisos_controller.dart';
 import 'features/cercanas/ui/buscar_controller.dart';
 import 'features/cercanas/ui/cercanas_controller.dart';
@@ -16,6 +18,7 @@ import 'features/favoritos/ui/favoritos_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await inicializarTrabajoFondo();
   final notificaciones = NotificacionesLocales();
   final navegacionAvisos = NavegacionAvisosController();
   await notificaciones.inicializar(
@@ -40,6 +43,7 @@ Future<void> main() async {
   final avisos = AvisosController(
     favoritos: favoritos,
     notificaciones: notificaciones,
+    programador: ProgramadorWorkManager(),
   );
   await avisos.reconciliar();
   runApp(

@@ -57,8 +57,10 @@ precios, su histórico y los accesos de navegar, favorito y campana.
   su base de precios; si vuelves a marcarla, empieza apagada.
 - En Android 13 o superior se pide permiso de notificaciones la primera vez. Si lo
   deniegas, la campana no se activa y la app explica cómo concederlo.
-- La comprobación se hace al abrir o reanudar la app. Los avisos con la app cerrada se
-  añadirán en una entrega posterior.
+- En Android, la app programa una comprobación con WorkManager después de cada
+  actualización y también comprueba al abrir o reanudar. El sistema puede retrasarla por
+  Doze o por la gestión de batería del fabricante; no es tiempo real. Si fuerzas la
+  detención de la app, los avisos se recuperan al volver a abrirla.
 - En Windows y Linux se intenta una notificación local; si el entorno no la admite, el
   aviso aparece dentro de la app. En escritorio no se prometen avisos con la app cerrada.
 - Los datos se actualizan dos veces al día y no son tiempo real. La primera comprobación
