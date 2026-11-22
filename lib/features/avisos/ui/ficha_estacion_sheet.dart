@@ -119,7 +119,7 @@ class _FichaEstacionSheetState extends State<FichaEstacionSheet> {
                               gasolinera.id,
                             );
                             if (!context.mounted) return;
-                            mostrarResultadoAviso(context, resultado);
+                            await mostrarResultadoAviso(context, resultado);
                           },
                   ),
               ],

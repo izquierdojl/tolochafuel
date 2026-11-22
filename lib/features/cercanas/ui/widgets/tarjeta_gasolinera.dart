@@ -10,6 +10,8 @@ import '../../../../core/utilidades/formato.dart';
 import '../../../alias/ui/alias_controller.dart';
 import '../../../alias/ui/dialogo_alias.dart';
 import '../../../alias/ui/nombre_mostrado.dart';
+import '../../../avisos/ui/avisos_controller.dart';
+import '../../../avisos/ui/mensajes_avisos.dart';
 import '../../../favoritos/ui/favoritos_controller.dart';
 import '../historial_controller.dart';
 import 'detalle_historico.dart';
@@ -18,9 +20,14 @@ import 'flecha_tendencia.dart';
 enum _AccionTarjeta { alias }
 
 class TarjetaGasolinera extends StatefulWidget {
-  const TarjetaGasolinera({super.key, required this.gasolinera});
+  const TarjetaGasolinera({
+    super.key,
+    required this.gasolinera,
+    this.mostrarAviso = false,
+  });
 
   final Gasolinera gasolinera;
+  final bool mostrarAviso;
 
   @override
   State<TarjetaGasolinera> createState() => _TarjetaGasolineraState();
@@ -76,9 +83,10 @@ class _TarjetaGasolineraState extends State<TarjetaGasolinera> {
     final tema = Theme.of(context);
     final esquema = tema.colorScheme;
     final colores = tema.extension<ColoresTendencia>();
-    final esFavorito = context.watch<FavoritosController>().esFavorito(
-      gasolinera.id,
-    );
+    final favoritos = context.watch<FavoritosController>();
+    final avisos = context.watch<AvisosController?>();
+    final esFavorito = favoritos.esFavorito(gasolinera.id);
+    final avisoActivo = favoritos.avisosActivos(gasolinera.id);
     final historial = context.watch<HistorialController?>();
     final historico = historial?.historico(gasolinera.id);
     final alias = context.watch<AliasController>().aliasDe(gasolinera.id);
@@ -149,6 +157,31 @@ class _TarjetaGasolineraState extends State<TarjetaGasolinera> {
                     }
                   },
                 ),
+                if (widget.mostrarAviso && esFavorito && avisos != null)
+                  IconButton(
+                    tooltip: avisoActivo
+                        ? 'Desactivar avisos de precio'
+                        : 'Avisarme de cambios de precio',
+                    visualDensity: VisualDensity.compact,
+                    iconSize: 20,
+                    color: avisoActivo
+                        ? esquema.primary
+                        : esquema.onSurfaceVariant,
+                    icon: Icon(
+                      avisoActivo
+                          ? Icons.notifications
+                          : Icons.notifications_none,
+                    ),
+                    onPressed: avisos.estaOcupado(gasolinera.id)
+                        ? null
+                        : () async {
+                            final resultado = await avisos.alternarAviso(
+                              gasolinera.id,
+                            );
+                            if (!context.mounted) return;
+                            await mostrarResultadoAviso(context, resultado);
+                          },
+                  ),
                 IconButton(
                   tooltip: esFavorito
                       ? 'Quitar de favoritos'
@@ -161,8 +194,7 @@ class _TarjetaGasolineraState extends State<TarjetaGasolinera> {
                   icon: Icon(
                     esFavorito ? Icons.favorite : Icons.favorite_border,
                   ),
-                  onPressed: () =>
-                      context.read<FavoritosController>().alternar(gasolinera),
+                  onPressed: () => favoritos.alternar(gasolinera),
                 ),
                 PopupMenuButton<_AccionTarjeta>(
                   tooltip: 'Más acciones',

@@ -2,7 +2,6 @@ import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
 import '../../avisos/ui/avisos_controller.dart';
-import '../../avisos/ui/mensajes_avisos.dart';
 import '../../cercanas/ui/widgets/pie_frescura.dart';
 import '../../cercanas/ui/widgets/tarjeta_gasolinera.dart';
 import '../data/favorito.dart';
@@ -111,15 +110,9 @@ class _FavoritoReordenable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final contenido = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        ReorderableDelayedDragStartListener(
-          index: indice,
-          child: _FavoritoConPrecio(favorito: favorito),
-        ),
-        _FilaAviso(favorito: favorito),
-      ],
+    final contenido = ReorderableDelayedDragStartListener(
+      index: indice,
+      child: _FavoritoConPrecio(favorito: favorito),
     );
     if (!mostrarAsa) return contenido;
     final esquema = Theme.of(context).colorScheme;
@@ -164,7 +157,7 @@ class _FavoritoConPrecio extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TarjetaGasolinera(gasolinera: gasolinera),
+        TarjetaGasolinera(gasolinera: gasolinera, mostrarAviso: true),
         if (cargando) const LinearProgressIndicator(),
         if (error != null)
           Padding(
@@ -187,37 +180,6 @@ class _FavoritoConPrecio extends StatelessWidget {
             ),
           ),
       ],
-    );
-  }
-}
-
-class _FilaAviso extends StatelessWidget {
-  const _FilaAviso({required this.favorito});
-
-  final Favorito favorito;
-
-  @override
-  Widget build(BuildContext context) {
-    final avisos = context.watch<AvisosController?>();
-    if (avisos == null) return const SizedBox.shrink();
-    final activo = favorito.avisosPrecio;
-    final ocupado = avisos.estaOcupado(favorito.id);
-    return SwitchListTile(
-      contentPadding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
-      dense: true,
-      secondary: Icon(
-        activo ? Icons.notifications_active_outlined : Icons.notifications_none,
-      ),
-      title: const Text('Avisarme de cambios de precio'),
-      subtitle: const Text('Los datos se actualizan 2 veces al día'),
-      value: activo,
-      onChanged: ocupado
-          ? null
-          : (_) async {
-              final resultado = await avisos.alternarAviso(favorito.id);
-              if (!context.mounted) return;
-              mostrarResultadoAviso(context, resultado);
-            },
     );
   }
 }

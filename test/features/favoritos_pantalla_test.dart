@@ -500,7 +500,9 @@ void main() {
     expect(find.byType(LinearProgressIndicator), findsNothing);
   });
 
-  testWidgets('muestra la campana y activa el aviso', (tester) async {
+  testWidgets('muestra la campana y activa el aviso con un diálogo', (
+    tester,
+  ) async {
     final controller = FavoritosController(api: ApiFalsa());
     await controller.cargar();
     await controller.alternar(_gasolinera());
@@ -510,21 +512,23 @@ void main() {
     await tester.pumpWidget(_pantalla(controller, avisos: avisos));
     await tester.pumpAndSettle();
 
-    expect(find.text('Avisarme de cambios de precio'), findsOneWidget);
-    expect(find.byType(SwitchListTile), findsOneWidget);
+    expect(find.byIcon(Icons.notifications_none), findsOneWidget);
+    expect(find.byType(Switch), findsNothing);
+
+    await tester.tap(find.byIcon(Icons.notifications_none));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Avisos activados'), findsOneWidget);
     expect(
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
-      isFalse,
+      find.textContaining('Los datos se actualizan 2 veces al día'),
+      findsOneWidget,
     );
 
-    await tester.tap(find.byType(SwitchListTile));
+    await tester.tap(find.text('Entendido'));
     await tester.pumpAndSettle();
 
     expect(controller.avisosActivos(3194), isTrue);
-    expect(
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
-      isTrue,
-    );
+    expect(find.byIcon(Icons.notifications), findsOneWidget);
   });
 
   testWidgets('no activa la campana si se deniega el permiso', (tester) async {
@@ -537,12 +541,17 @@ void main() {
     await tester.pumpWidget(_pantalla(controller, avisos: avisos));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byType(SwitchListTile));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.byIcon(Icons.notifications_none));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Notificaciones desactivadas'), findsOneWidget);
+    expect(find.textContaining('Para recibir avisos'), findsOneWidget);
+
+    await tester.tap(find.text('Entendido'));
+    await tester.pumpAndSettle();
 
     expect(controller.avisosActivos(3194), isFalse);
-    expect(find.textContaining('Para recibir avisos'), findsOneWidget);
+    expect(find.byIcon(Icons.notifications), findsNothing);
   });
 
   testWidgets('desmarcar el favorito oculta la campana', (tester) async {
@@ -559,6 +568,60 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Aún no tienes gasolineras favoritas'), findsOneWidget);
-    expect(find.byType(SwitchListTile), findsNothing);
+    expect(find.byIcon(Icons.notifications_none), findsNothing);
+    expect(find.byIcon(Icons.notifications), findsNothing);
+  });
+
+  testWidgets('no muestra la campana de avisos fuera de Favoritos', (
+    tester,
+  ) async {
+    final controller = FavoritosController(api: ApiFalsa());
+    await controller.cargar();
+    await controller.alternar(_gasolinera());
+    final avisos = _crearAvisos(controller);
+    addTearDown(avisos.dispose);
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: controller),
+          ChangeNotifierProvider(create: (_) => AliasController()),
+          ChangeNotifierProvider.value(value: avisos),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.oscuro,
+          home: Scaffold(body: TarjetaGasolinera(gasolinera: _gasolinera())),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.notifications_none), findsNothing);
+    expect(find.byIcon(Icons.notifications), findsNothing);
+  });
+
+  testWidgets('el control compacto cabe en una tarjeta estrecha', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    final controller = FavoritosController(api: ApiFalsa());
+    await controller.cargar();
+    await controller.alternar(_gasolinera(id: 1, nombre: 'Primera'));
+    await controller.alternar(_gasolinera(id: 2, nombre: 'Segunda'));
+    final avisos = _crearAvisos(controller);
+    addTearDown(avisos.dispose);
+
+    await tester.pumpWidget(_pantalla(controller, avisos: avisos));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+
+    tester.view.physicalSize = const Size(320, 900);
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
   });
 }
